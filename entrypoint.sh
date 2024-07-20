@@ -110,6 +110,9 @@ if [ ! -d "$DIRECTORY" ]; then
     mkdir -p "$DIRECTORY"
 fi
 
+# Start the Avahi daemon
+/usr/sbin/avahi-daemon --daemonize
+
 # Initial service file generation for existing printers
 PRINTERS=$(lpstat -v | awk '{print $3}' | tr -d ':')
 for PRINTER in $PRINTERS; do
