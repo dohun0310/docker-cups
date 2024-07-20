@@ -30,6 +30,11 @@ RUN apt-get update && \
 # Expose port 631 for CUPS
 EXPOSE 631
 
+# Modify the CUPS and Samba configuration files
+RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
+  sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
+  sed -i "s/workgroup = WORKGROUP/workgroup = WORKGROUP\n   security = user/" /etc/samba/smb.conf
+
 # Copy the CUPS configuration files into the temporary directory
 RUN cp -rp /etc/cups /etc/cups-temp
 
@@ -42,11 +47,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set the entrypoint to the custom script
 CMD ["/usr/local/bin/entrypoint.sh"]
-
-# Modify the CUPS and Samba configuration files
-RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
-  sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
-  sed -i "s/workgroup = WORKGROUP/workgroup = WORKGROUP\n   security = user/" /etc/samba/smb.conf
 
 # Clean up temporary files to reduce image size
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
