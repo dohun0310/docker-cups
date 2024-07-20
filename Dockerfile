@@ -40,7 +40,7 @@ RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
 RUN avahi-daemon --daemonize
 
 # Copy the CUPS configuration files into the temporary directory
-RUN cp -rp /etc/cups /tmp/cups
+RUN cp -rp /etc/cups /etc/cups-temp
 
 # Declare a volume for the CUPS configuration
 VOLUME /etc/cups
