@@ -31,7 +31,7 @@ RUN apt-get update && \
 EXPOSE 631
 
 # Copy the CUPS configuration files into the temporary directory
-RUN mkdir /etc/cup && cp -rpn /etc/cups/* /etc/cup
+RUN mkdir /etc/cup && cp -rpn /etc/cups/* /etc/cup/
 
 # Declare a volume for the CUPS configuration
 VOLUME /etc/cups
