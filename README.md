@@ -5,7 +5,7 @@
 ### Default
 
 ```bash
-docker run -d -p 631:631 --name cups dohun0310/cups
+docker run -d -p 631:631 -p 5353:5353 --name cups dohun0310/cups
 ```
 
 The default username/password for the Cups server is `print`/`print`
@@ -13,7 +13,7 @@ The default username/password for the Cups server is `print`/`print`
 ### Custom
 
 ```bash
-docker run -d -p 631:631 -v $(pwd):/etc/cups -e TZ=Asia/Seoul -e USERNAME=user -e PASSWORD=password --name cups dohun0310/cups`
+docker run -d -p 631:631 -p 5353:5353 -v $(pwd):/etc/cups -e TZ=Asia/Seoul -e USERNAME=user -e PASSWORD=password --name cups dohun0310/cups`
 ```
 
 You can specify your own username and password. You can access `/etc/cups`. 
