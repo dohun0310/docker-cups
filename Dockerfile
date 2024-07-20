@@ -1,8 +1,11 @@
+# Set the base image to the latest version of Ubuntu
 FROM ubuntu:latest
 
+# Declare build-time arguments for the username and password
 ARG USERNAME=admin
 ARG PASSWORD=admin
 
+# Update the package list, upgrade installed packages, and install necessary packages
 RUN apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y \
@@ -20,19 +23,26 @@ RUN apt-get update && \
   hpijs-ppds \
   hp-ppd \
   hplip \
-  samba && \
+  samba \
   rm -rf /var/lib/apt/lists/*
 
-RUN useradd -r -G lpadmin -M $USERNAME && echo $USERNAME:$PASSWORD | chpasswd
-
-CMD ["/usr/sbin/cupsd", "-f"]
-
+# Expose port 631 for CUPS
 EXPOSE 631
 
+# Declare a volume for the CUPS configuration
 VOLUME /etc/cups
 
+# Copy the entrypoint script into the container and make it executable
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Modify the CUPS and Samba configuration files
 RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
   sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
   sed -i "s/workgroup = WORKGROUP/workgroup = WORKGROUP\n   security = user/" /etc/samba/smb.conf
 
+# Set the entrypoint to the custom script
+CMD ["/usr/local/bin/entrypoint.sh"]
+
+# Clean up temporary files to reduce image size
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
