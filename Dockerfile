@@ -30,6 +30,9 @@ RUN apt-get update && \
 # Expose port 631 for CUPS
 EXPOSE 631
 
+# Copy the CUPS configuration files into the temporary directory
+RUN mkdir /etc/cup && cp -rpn /etc/cups/* /etc/cup
+
 # Declare a volume for the CUPS configuration
 VOLUME /etc/cups
 
@@ -39,6 +42,9 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set the entrypoint to the custom script
 CMD ["/usr/local/bin/entrypoint.sh"]
+
+# Delete the temporary CUPS configuration directory
+RUN rm -rf /etc/cup
 
 # Modify the CUPS and Samba configuration files
 RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
