@@ -47,4 +47,4 @@ By following these detailed steps, you should be able to add a printer to your C
 * cups, cups-client, cups-filters, cups-bsd, cups-filters
 * foomatic-db
 * printer-driver-all, printer-driver-cups-pdf, openprinting-ppds, hpijs-ppds, hp-ppd
-* samba
+* avahi-daemon
