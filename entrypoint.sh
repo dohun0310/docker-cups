@@ -30,6 +30,9 @@ fi
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
 
+# Start the CUPS daemon
+exec /usr/sbin/cupsd -f
+
 # Ensure required tools are available
 command -v lpstat >/dev/null 2>&1 || { echo >&2 "lpstat command not found. Ensure CUPS is installed."; exit 1; }
 command -v lpoptions >/dev/null 2>&1 || { echo >&2 "lpoptions command not found. Ensure CUPS is installed."; exit 1; }
