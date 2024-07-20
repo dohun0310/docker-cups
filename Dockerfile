@@ -31,11 +31,6 @@ RUN apt-get update && \
 EXPOSE 631
 EXPOSE 5353
 
-# Modify the CUPS and Avahi configuration files
-RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
-  sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
-  sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf
-
 # Start the Avahi daemon and enable it to start on boot
 RUN avahi-daemon --daemonize
 
