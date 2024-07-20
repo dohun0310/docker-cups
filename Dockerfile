@@ -24,11 +24,15 @@ RUN apt-get update && \
   hpijs-ppds \
   hp-ppd \
   hplip \
-  samba && \
+  avahi-daemon && \
   rm -rf /var/lib/apt/lists/*
 
-# Expose port 631 for CUPS
+# Expose ports for CUPS and Avahi
 EXPOSE 631
+EXPOSE 5353
+
+# Start the Avahi daemon and enable it to start on boot
+RUN systemctl start avahi-daemon && systemctl enable avahi-daemon
 
 # Modify the CUPS and Samba configuration files
 RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
