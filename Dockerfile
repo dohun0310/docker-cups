@@ -1,7 +1,8 @@
 # Set the base image to the latest version of Ubuntu
 FROM ubuntu:latest
 
-# Declare build-time arguments for the username and password
+# Declare build-time arguments for the username, password, and timezone
+ARG TZ=Etc/UTC
 ARG USERNAME=admin
 ARG PASSWORD=admin
 
