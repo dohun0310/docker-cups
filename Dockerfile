@@ -24,15 +24,17 @@ RUN apt-get update && \
   hpijs-ppds \
   hp-ppd \
   hplip \
-  avahi-daemon && \
+  avahi-daemon \
+  inotify-tools \
+  libxml2-utils && \
   rm -rf /var/lib/apt/lists/*
 
 # Expose ports for CUPS and Avahi
 EXPOSE 631
 EXPOSE 5353
 
-# Start the Avahi daemon and enable it to start on boot
-RUN avahi-daemon --daemonize
+# Modify Avahi configuration files and start the Avahi daemon and enable it to start on boot
+RUN sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf && avahi-daemon --daemonize
 
 # Copy the CUPS configuration files into the temporary directory
 RUN cp -rp /etc/cups /etc/cups-temp

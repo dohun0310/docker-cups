@@ -26,10 +26,9 @@ if [ ! -f /etc/cups/cupsd.conf ]; then
     cp -rpn /etc/cups-temp/* /etc/cups/
 fi
 
-# Modify the CUPS and Avahi configuration files
+# Modify the CUPS configuration files
 RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
-  sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
-  sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf
+  sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
 
 # Ensure required tools are available
 command -v lpstat >/dev/null 2>&1 || { echo >&2 "lpstat command not found. Ensure CUPS is installed."; exit 1; }
