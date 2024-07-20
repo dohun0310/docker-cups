@@ -23,7 +23,7 @@ RUN apt-get update && \
   hpijs-ppds \
   hp-ppd \
   hplip \
-  samba \
+  samba && \
   rm -rf /var/lib/apt/lists/*
 
 # Expose port 631 for CUPS
