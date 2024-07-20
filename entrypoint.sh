@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Set default values for USERNAME, PASSWORD, TZ, DIRECTORY, and PREFIX if they are not provided
+# Set default values for USERNAME, PASSWORD, TZ, and PREFIX if they are not provided
 USERNAME=${USERNAME:-print}
 PASSWORD=${PASSWORD:-print}
 TZ=${TZ:-Etc/UTC}
-DIRECTORY=${DIRECTORY:-/services}
 PREFIX=${PREFIX:-AirPrint-}
 VERBOSE=${VERBOSE:-false}
 
@@ -31,7 +30,7 @@ sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
 
 # Start the CUPS daemon
-exec /usr/sbin/cupsd -f
+/usr/sbin/cupsd -f
 
 # Ensure required tools are available
 command -v lpstat >/dev/null 2>&1 || { echo >&2 "lpstat command not found. Ensure CUPS is installed."; exit 1; }
@@ -42,7 +41,7 @@ command -v inotifywait >/dev/null 2>&1 || { echo >&2 "inotifywait command not fo
 # Function to generate service file
 generate_service_file() {
     PRINTER_NAME=$1
-    SERVICE_FILE="${DIRECTORY}/${PREFIX}${PRINTER_NAME}.service"
+    SERVICE_FILE="/etc/avahi/services/${PREFIX}${PRINTER_NAME}.service"
     PRINTER_INFO=$(lpoptions -p "$PRINTER_NAME" -l | grep -m 1 'printer-info' | cut -d '=' -f 2)
     PRINTER_URI=$(lpstat -v "$PRINTER_NAME" | awk '{print $4}')
 
@@ -54,7 +53,7 @@ generate_service_file() {
     <service>
         <type>_ipp._tcp</type>
         <subtype>_universal._sub._ipp._tcp</subtype>
-        <port>${CUPS_PORT}</port>
+        <port>631</port>
         <txt-record>txtvers=1</txt-record>
         <txt-record>qtotal=1</txt-record>
         <txt-record>Transparent=T</txt-record>
@@ -105,11 +104,6 @@ EOF
     fi
 }
 
-# Check and create service file directory if needed
-if [ ! -d "$DIRECTORY" ]; then
-    mkdir -p "$DIRECTORY"
-fi
-
 # Start the Avahi daemon
 /usr/sbin/avahi-daemon --daemonize
 
@@ -123,12 +117,11 @@ done
 /usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups |
 while read -r directory events filename; do
     if [ "$filename" = "printers.conf" ]; then
-        rm -rf /services/AirPrint-*.service
+        rm -rf /etc/avahi/services/AirPrint-*.service
         PRINTERS=$(lpstat -v | awk '{print $3}' | tr -d ':')
         for PRINTER in $PRINTERS; do
             generate_service_file "$PRINTER"
         done
-        rsync -avh /services/ /etc/avahi/services/
         chmod 755 /var/cache/cups
         rm -rf /var/cache/cups/*
     fi
