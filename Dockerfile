@@ -26,6 +26,7 @@ RUN apt-get update && \
   hplip \
   avahi-daemon \
   inotify-tools \
+  rsync \
   libxml2-utils && \
   rm -rf /var/lib/apt/lists/*
 
