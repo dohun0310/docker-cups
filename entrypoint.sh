@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# Check if /etc/cups is empty and copy default configuration if necessary
-if [ -z "$(ls -A /etc/cups)" ]; then
-  echo "/etc/cups is empty, copying default configuration files..."
-  cp -r /usr/share/cups/* /etc/cups/
+# Check if the CUPS admin user exists, and create it if it does not
+if [ $(grep -ci $USERNAME /etc/shadow) -eq 0 ]; then
+    useradd -r -G lpadmin -M $USERNAME
+
+    # Add password
+    echo $USERNAME:$PASSWORD | chpasswd
+
+    # Add timezone data
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
+    dpkg-reconfigure --frontend noninteractive tzdata
 fi
 
-# Add user and set password
-USERNAME=${USERNAME:-admin}
-PASSWORD=${PASSWORD:-admin}
-useradd -r -G lpadmin -M $USERNAME
-echo "$USERNAME:$PASSWORD" | chpasswd
+# Restore default CUPS config in case the user does not have any
+if [ ! -f /etc/cups/cupsd.conf ]; then
+    echo "Copying default configuration files to /etc/cups..."
+    cp -rpn /usr/share/cups/* /etc/cups/
+fi
 
 # Start CUPS daemon
 exec /usr/sbin/cupsd -f
