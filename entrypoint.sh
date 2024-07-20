@@ -9,12 +9,8 @@ fi
 # Add user and set password
 USERNAME=${USERNAME:-admin}
 PASSWORD=${PASSWORD:-admin}
-if id -u "$USERNAME" >/dev/null 2>&1; then
-  echo "User $USERNAME already exists"
-else
-  useradd -r -G lpadmin -M $USERNAME
-  echo "$USERNAME:$PASSWORD" | chpasswd
-fi
+useradd -r -G lpadmin -M $USERNAME
+echo "$USERNAME:$PASSWORD" | chpasswd
 
 # Start CUPS daemon
 exec /usr/sbin/cupsd -f
