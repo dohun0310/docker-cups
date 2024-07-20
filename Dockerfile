@@ -37,13 +37,13 @@ VOLUME /etc/cups
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Set the entrypoint to the custom script
+CMD ["/usr/local/bin/entrypoint.sh"]
+
 # Modify the CUPS and Samba configuration files
 RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
   sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
   sed -i "s/workgroup = WORKGROUP/workgroup = WORKGROUP\n   security = user/" /etc/samba/smb.conf
-
-# Set the entrypoint to the custom script
-CMD ["/usr/local/bin/entrypoint.sh"]
 
 # Clean up temporary files to reduce image size
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
