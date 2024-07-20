@@ -31,13 +31,13 @@ RUN apt-get update && \
 EXPOSE 631
 EXPOSE 5353
 
-# Start the Avahi daemon and enable it to start on boot
-RUN /usr/sbin/avahi-daemon --daemonize
-
-# Modify the CUPS and Samba configuration files
+# Modify the CUPS and Avahi configuration files
 RUN sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
   sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf && \
-  sed -i "s/workgroup = WORKGROUP/workgroup = WORKGROUP\n   security = user/" /etc/samba/smb.conf
+  sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf
+
+# Start the Avahi daemon and enable it to start on boot
+RUN avahi-daemon --daemonize
 
 # Copy the CUPS configuration files into the temporary directory
 RUN cp -rp /etc/cups /etc/cups-temp
