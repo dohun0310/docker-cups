@@ -22,7 +22,9 @@ RUN apt-get update && \
   openprinting-ppds \
   hpijs-ppds \
   hp-ppd \
-  hplip && \
+  hplip \
+  inotify-tools \
+  libxml2-utils && \
   rm -rf /var/lib/apt/lists/*
 
 # Expose ports for CUPS
