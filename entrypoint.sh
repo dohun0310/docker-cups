@@ -39,9 +39,6 @@ generate_airprint_service() {
     local PRINTER_INFO="$3"
     local PRINTER_STATE="$4"
     local PRINTER_TYPE="$5"
-    local PRINTER_PDL="$6"
-    local PRINTER_COLOR="$7"
-    local PRINTER_MAX_PAPER="$8"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
     cat <<EOF > "$OUTPUT_FILE"
@@ -62,9 +59,7 @@ generate_airprint_service() {
     <txt-record>product=(GPL Ghostscript)</txt-record>
     <txt-record>printer-state=${PRINTER_STATE}</txt-record>
     <txt-record>printer-type=${PRINTER_TYPE}</txt-record>
-    <txt-record>pdl=application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf,${PRINTER_PDL}</txt-record>
-    ${PRINTER_COLOR}
-    ${PRINTER_MAX_PAPER}
+    <txt-record>pdl=application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf</txt-record>
 </service>
 </service-group>
 EOF
@@ -78,11 +73,8 @@ get_printer_attributes() {
     local PRINTER_RP=$(lpstat -v "$PRINTER_NAME" | awk '{print $3}' | xargs)
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
     local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP 'printer-type=\K[0-9a-fA-F]+')
-    local PRINTER_PDL=$(lpoptions -p "$PRINTER_NAME" | grep -oP 'document-format-supported=\K[^ ]+')
-    local PRINTER_COLOR=$(lpoptions -p "$PRINTER_NAME" | grep -q 'ColorModel=Color' && echo "<txt-record>Color=T</txt-record>" || echo "")
-    local PRINTER_MAX_PAPER=$(lpoptions -p "$PRINTER_NAME" | grep -q 'PageSize=A4' && echo "<txt-record>PaperMax=legal-A4</txt-record>" || echo "")
 
-    generate_airprint_service "$PRINTER_NAME" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE" "$PRINTER_TYPE" "$PRINTER_PDL" "$PRINTER_COLOR" "$PRINTER_MAX_PAPER"
+    generate_airprint_service "$PRINTER_NAME" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE" "$PRINTER_TYPE"
 }
 
 # Handle changes in CUPS configuration
