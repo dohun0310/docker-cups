@@ -28,6 +28,7 @@ fi
 # Modify the CUPS configuration files
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
+sed -i "s/</Location>/  Allow All\n</Location>/" /etc/cups/cupsd.conf
 
 # Start the CUPS daemon
 /usr/sbin/cupsd -f
@@ -42,8 +43,8 @@ command -v inotifywait >/dev/null 2>&1 || { echo >&2 "inotifywait command not fo
 generate_service_file() {
     PRINTER_NAME=$1
     SERVICE_FILE="/etc/avahi/services/${PREFIX}${PRINTER_NAME}.service"
-    PRINTER_INFO=$(lpoptions -p "$PRINTER_NAME" -l | grep -m 1 'printer-info' | cut -d '=' -f 2)
-    PRINTER_URI=$(lpstat -v "$PRINTER_NAME" | awk '{print $4}')
+    PRINTER_INFO=$(lpoptions -p "$PRINTER_NAME" -l | grep -m 1 "printer-info" | cut -d "=" -f 2)
+    PRINTER_URI=$(lpstat -v "$PRINTER_NAME" | awk "{print $4}")
 
     # Create XML template
     cat <<EOF > "$SERVICE_FILE"
@@ -67,19 +68,19 @@ EOF
 
     # Fetch printer attributes
     PRINTER_ATTRIBUTES=$(lpoptions -p "$PRINTER_NAME" -l)
-    PRINTER_STATE=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 'printer-state' | cut -d '=' -f 2)
-    PRINTER_TYPE=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 'printer-type' | cut -d '=' -f 2)
-    COLOR_SUPPORTED=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 'ColorSupported' | cut -d '=' -f 2)
-    MEDIA_DEFAULT=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 'media-default' | cut -d '=' -f 2)
-    DOCUMENT_FORMATS=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 'document-format-supported' | cut -d '=' -f 2)
+    PRINTER_STATE=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 "printer-state" | cut -d "=" -f 2)
+    PRINTER_TYPE=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 "printer-type" | cut -d "=" -f 2)
+    COLOR_SUPPORTED=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 "ColorSupported" | cut -d "=" -f 2)
+    MEDIA_DEFAULT=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 "media-default" | cut -d "=" -f 2)
+    DOCUMENT_FORMATS=$(echo "$PRINTER_ATTRIBUTES" | grep -m 1 "document-format-supported" | cut -d "=" -f 2)
 
     # Add additional XML entries
     if [ "$COLOR_SUPPORTED" = "True" ]; then
-        echo '        <txt-record>Color=T</txt-record>' >> "$SERVICE_FILE"
+        echo "        <txt-record>Color=T</txt-record>" >> "$SERVICE_FILE"
     fi
 
     if [ "$MEDIA_DEFAULT" = "iso_a4_210x297mm" ]; then
-        echo '        <txt-record>PaperMax=legal-A4</txt-record>' >> "$SERVICE_FILE"
+        echo "        <txt-record>PaperMax=legal-A4</txt-record>" >> "$SERVICE_FILE"
     fi
 
     if [ -n "$PRINTER_STATE" ]; then
@@ -95,8 +96,8 @@ EOF
     fi
 
     # Complete the XML file
-    echo '</service>' >> "$SERVICE_FILE"
-    echo '</service-group>' >> "$SERVICE_FILE"
+    echo "</service>" >> "$SERVICE_FILE"
+    echo "</service-group>" >> "$SERVICE_FILE"
 
     # Print output
     if [ "$VERBOSE" = true ]; then
@@ -108,7 +109,7 @@ EOF
 /usr/sbin/avahi-daemon --daemonize
 
 # Initial service file generation for existing printers
-PRINTERS=$(lpstat -v | awk '{print $3}' | tr -d ':')
+PRINTERS=$(lpstat -v | awk "{print $3}" | tr -d ":")
 for PRINTER in $PRINTERS; do
     generate_service_file "$PRINTER"
 done
@@ -118,7 +119,7 @@ done
 while read -r directory events filename; do
     if [ "$filename" = "printers.conf" ]; then
         rm -rf /etc/avahi/services/AirPrint-*.service
-        PRINTERS=$(lpstat -v | awk '{print $3}' | tr -d ':')
+        PRINTERS=$(lpstat -v | awk "{print $3}" | tr -d ":")
         for PRINTER in $PRINTERS; do
             generate_service_file "$PRINTER"
         done
