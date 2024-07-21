@@ -26,6 +26,9 @@ fi
 # Remove temporary directory
 rm -rf /etc/cups-temp
 
+# Remove Avahi service files
+rm -rf /etc/avahi/services/*
+
 # Modify CUPS and Avahi configuration files
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes" /etc/cups/cupsd.conf
