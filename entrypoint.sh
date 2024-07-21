@@ -37,7 +37,7 @@ generate_airprint_service() {
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
 <service-group>
-<name replace-wildcards="yes">AirPrint ${PRINTER_NAME} @ %h</name>
+<name replace-wildcards="yes">${PRINTER_NAME}</name>
 <service>
     <type>_ipp._tcp</type>
     <subtype>_universal._sub._ipp._tcp</subtype>
