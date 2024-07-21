@@ -3,8 +3,8 @@ FROM ubuntu:latest
 
 # Declare build-time arguments for the username, password, and timezone
 ARG TZ=Etc/UTC
-ARG USERNAME=admin
-ARG PASSWORD=admin
+ARG USERNAME=print
+ARG PASSWORD=print
 
 # Update the package list, upgrade installed packages, and install necessary packages
 RUN apt-get update && \
