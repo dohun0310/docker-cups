@@ -76,12 +76,12 @@ get_printer_attributes() {
     echo "New printer detected: $1"
     local PRINTER_NAME="$1"
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
-    local PRINTER_RP=$(lpstat -v "$PRINTER_NAME" | awk "{print $3}" | xargs)
+    local PRINTER_RP=$(lpstat -v "$PRINTER_NAME" | awk '{print $3}' | xargs)
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
-    local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-type=\K[0-9a-fA-F]+")
-    local PRINTER_PDL=$(lpoptions -p "$PRINTER_NAME" | grep -oP "document-format-supported=\K[^ ]+")
-    local PRINTER_COLOR=$(lpoptions -p "$PRINTER_NAME" | grep -q "ColorModel=Color" && echo "<txt-record>Color=T</txt-record>" || echo "")
-    local PRINTER_MAX_PAPER=$(lpoptions -p "$PRINTER_NAME" | grep -q "PageSize=A4" && echo "<txt-record>PaperMax=legal-A4</txt-record>" || echo "")
+    local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP 'printer-type=\K[0-9a-fA-F]+')
+    local PRINTER_PDL=$(lpoptions -p "$PRINTER_NAME" | grep -oP 'document-format-supported=\K[^ ]+')
+    local PRINTER_COLOR=$(lpoptions -p "$PRINTER_NAME" | grep -q 'ColorModel=Color' && echo "<txt-record>Color=T</txt-record>" || echo "")
+    local PRINTER_MAX_PAPER=$(lpoptions -p "$PRINTER_NAME" | grep -q 'PageSize=A4' && echo "<txt-record>PaperMax=legal-A4</txt-record>" || echo "")
 
     generate_airprint_service "$PRINTER_NAME" "631" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE" "$PRINTER_TYPE" "$PRINTER_PDL" "$PRINTER_COLOR" "$PRINTER_MAX_PAPER"
 }
