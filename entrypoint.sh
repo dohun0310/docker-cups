@@ -28,7 +28,7 @@ fi
 # Modify the CUPS configuration files
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
-sed -i "s/</Location>/  Allow All\n</Location>/" /etc/cups/cupsd.conf
+sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf
 
 # Start the CUPS daemon
 /usr/sbin/cupsd -f
