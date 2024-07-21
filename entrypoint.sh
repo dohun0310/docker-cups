@@ -35,5 +35,5 @@ sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes" /etc/cups/cupsd.conf
 sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf
 sed -i 's/.*enable\-dbus=.*/enable\-dbus\=no/' /etc/avahi/avahi-daemon.conf
 
-# Start CUPS daemon
-/usr/sbin/cupsd -f
+# Start CUPS and Avahi daemon
+/usr/sbin/cupsd -f && /usr/sbin/avahi-daemon -D
