@@ -59,6 +59,7 @@ generate_airprint_service() {
     <txt-record>product=(GPL Ghostscript)</txt-record>
     <txt-record>printer-state=${PRINTER_STATE}</txt-record>
     <txt-record>printer-type=${PRINTER_TYPE}</txt-record>
+    <txt-record>Color=T</txt-record>
     <txt-record>pdl=application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf</txt-record>
 </service>
 </service-group>
