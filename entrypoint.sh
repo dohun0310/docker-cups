@@ -35,14 +35,13 @@ sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 generate_airprint_service() {
     echo "Generating AirPrint service file for $1"
     local PRINTER_NAME="$1"
-    local PRINTER_PORT="$2"
-    local PRINTER_RP="$3"
-    local PRINTER_INFO="$4"
-    local PRINTER_STATE="$5"
-    local PRINTER_TYPE="$6"
-    local PRINTER_PDL="$7"
-    local PRINTER_COLOR="$8"
-    local PRINTER_MAX_PAPER="$9"
+    local PRINTER_RP="$2"
+    local PRINTER_INFO="$3"
+    local PRINTER_STATE="$4"
+    local PRINTER_TYPE="$5"
+    local PRINTER_PDL="$6"
+    local PRINTER_COLOR="$7"
+    local PRINTER_MAX_PAPER="$8"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
     cat <<EOF > "$OUTPUT_FILE"
@@ -53,7 +52,7 @@ generate_airprint_service() {
 <service>
     <type>_ipp._tcp</type>
     <subtype>_universal._sub._ipp._tcp</subtype>
-    <port>${PRINTER_PORT}</port>
+    <port>631</port>
     <txt-record>txtvers=1</txt-record>
     <txt-record>qtotal=1</txt-record>
     <txt-record>Transparent=T</txt-record>
@@ -66,6 +65,17 @@ generate_airprint_service() {
     <txt-record>pdl=${PRINTER_PDL}</txt-record>
     ${PRINTER_COLOR}
     ${PRINTER_MAX_PAPER}
+</service>
+<service>
+    <type>_printer._tcp</type>
+    <port>515</port>
+    <txt-record>qtotal=1</txt-record>
+    <txt-record>product=(GPL Ghostscript)</txt-record>
+    <txt-record>usb_MDL=${PRINTER_NAME}</txt-record>
+    <txt-record>usb_MFG=Generic</txt-record>
+    <txt-record>rp=printer</txt-record>
+    <txt-record>ty=Generic</txt-record>
+    <txt-record>note=${PRINTER_INFO}</txt-record>
 </service>
 </service-group>
 EOF
@@ -83,7 +93,7 @@ get_printer_attributes() {
     local PRINTER_COLOR=$(lpoptions -p "$PRINTER_NAME" | grep -q 'ColorModel=Color' && echo "<txt-record>Color=T</txt-record>" || echo "")
     local PRINTER_MAX_PAPER=$(lpoptions -p "$PRINTER_NAME" | grep -q 'PageSize=A4' && echo "<txt-record>PaperMax=legal-A4</txt-record>" || echo "")
 
-    generate_airprint_service "$PRINTER_NAME" "631" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE" "$PRINTER_TYPE" "$PRINTER_PDL" "$PRINTER_COLOR" "$PRINTER_MAX_PAPER"
+    generate_airprint_service "$PRINTER_NAME" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE" "$PRINTER_TYPE" "$PRINTER_PDL" "$PRINTER_COLOR" "$PRINTER_MAX_PAPER"
 }
 
 # Handle changes in CUPS configuration
