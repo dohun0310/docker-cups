@@ -18,7 +18,7 @@ if [ ! -f /etc/cups/cupsd.conf ]; then
     echo "Copying default configuration files to /etc/cups..."
     cp -rpn /tmp/cups/* /etc/cups/
 fi
-rm -rf /tmp/cups
+rm -rf /tmp/* /var/tmp/*
 
 # Function to configure CUPS and Avahi
 rm -rf /etc/avahi/services/*
