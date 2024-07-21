@@ -20,13 +20,6 @@ if [ ! -f /etc/cups/cupsd.conf ]; then
 fi
 rm -rf /tmp/* /var/tmp/*
 
-# Configure CUPS and Avahi
-rm -rf /etc/avahi/services/*
-sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
-sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
-sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf
-sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
-
 # Start CUPS and Avahi daemons
 /usr/sbin/cupsd -f &
 /usr/sbin/avahi-daemon --daemonize
@@ -35,10 +28,9 @@ sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 generate_airprint_service() {
     echo "Generating AirPrint service file for $1"
     local PRINTER_NAME="$1"
-    local PRINTER_RP="$2"
-    local PRINTER_INFO="$3"
-    local PRINTER_STATE="$4"
-    local PRINTER_TYPE="$5"
+    local PRINTER_INFO="$2"
+    local PRINTER_STATE="$3"
+    local PRINTER_TYPE="$4"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
     cat <<EOF > "$OUTPUT_FILE"
@@ -54,7 +46,7 @@ generate_airprint_service() {
     <txt-record>qtotal=1</txt-record>
     <txt-record>Transparent=T</txt-record>
     <txt-record>URF=none</txt-record>
-    <txt-record>rp=${PRINTER_RP}</txt-record>
+    <txt-record>rp=printers/${PRINTER_NAME}</txt-record>
     <txt-record>note=${PRINTER_INFO}</txt-record>
     <txt-record>product=(GPL Ghostscript)</txt-record>
     <txt-record>printer-state=${PRINTER_STATE}</txt-record>
@@ -71,7 +63,6 @@ get_printer_attributes() {
     echo "New printer detected: $1"
     local PRINTER_NAME="$1"
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
-    local PRINTER_RP=$(lpstat -v "$PRINTER_NAME" | awk '{print $3}' | xargs)
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
     local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP 'printer-type=\K[0-9a-fA-F]+')
 
