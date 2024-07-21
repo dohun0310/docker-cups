@@ -33,6 +33,7 @@ sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 
 # Function to generate AirPrint service files based on printer info
 generate_airprint_service() {
+    echo "Generating AirPrint service file for $1"
     local PRINTER_NAME="$1"
     local PRINTER_PORT="$2"
     local PRINTER_RP="$3"
@@ -72,6 +73,7 @@ EOF
 
 # Function to retrieve printer attributes from CUPS
 get_printer_attributes() {
+    echo "New printer detected: $1"
     local PRINTER_NAME="$1"
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
     local PRINTER_RP=$(lpstat -v "$PRINTER_NAME" | awk "{print $3}" | xargs)
@@ -88,6 +90,7 @@ get_printer_attributes() {
 /usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups |
 while read -r directory events filename; do
     if [ "$filename" = "printers.conf" ]; then
+        echo "Changes detected in printers.conf"
         rm -rf /etc/avahi/services/AirPrint-*.service
         for printer in $(lpstat -p | awk "{print $2}"); do
             get_printer_attributes "$printer"
