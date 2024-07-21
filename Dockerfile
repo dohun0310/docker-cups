@@ -22,18 +22,10 @@ RUN apt-get update && \
   openprinting-ppds \
   hpijs-ppds \
   hp-ppd \
-  hplip \
-  avahi-daemon \
-  rsync \
-  python3 \
-	python3-dev \
-	python3-pip \
-	python3-cups \
-  inotify-tools \
-  libxml2-utils && \
+  hplip && \
   rm -rf /var/lib/apt/lists/*
 
-# Expose ports for CUPS and Avahi
+# Expose ports for CUPS
 EXPOSE 631
 EXPOSE 5353
 
