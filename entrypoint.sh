@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Set default values for USERNAME, PASSWORD, TZ, and PREFIX if they are not provided
+# Set default values for TZ, USERNAME, PASSWORD if they are not provided
+TZ=${TZ:-Etc/UTC}
 USERNAME=${USERNAME:-print}
 PASSWORD=${PASSWORD:-print}
-TZ=${TZ:-Etc/UTC}
 
 # Check if the CUPS admin user exists, and create it if it does not
 if [ $(grep -ci $USERNAME /etc/shadow) -eq 0 ]; then
@@ -28,7 +28,7 @@ rm -rf /etc/cups-temp
 
 # Modify CUPS configuration files
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
-sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
+sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes\nBrowseDNSSDSubTypes _cups,_print/" /etc/cups/cupsd.conf
 sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf
 
 # Start CUPS daemon
