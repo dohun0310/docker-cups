@@ -62,20 +62,9 @@ generate_airprint_service() {
     <txt-record>product=(GPL Ghostscript)</txt-record>
     <txt-record>printer-state=${PRINTER_STATE}</txt-record>
     <txt-record>printer-type=${PRINTER_TYPE}</txt-record>
-    <txt-record>pdl=${PRINTER_PDL}</txt-record>
+    <txt-record>pdl=application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf,${PRINTER_PDL}</txt-record>
     ${PRINTER_COLOR}
     ${PRINTER_MAX_PAPER}
-</service>
-<service>
-    <type>_printer._tcp</type>
-    <port>515</port>
-    <txt-record>qtotal=1</txt-record>
-    <txt-record>product=(GPL Ghostscript)</txt-record>
-    <txt-record>usb_MDL=${PRINTER_NAME}</txt-record>
-    <txt-record>usb_MFG=Generic</txt-record>
-    <txt-record>rp=printer</txt-record>
-    <txt-record>ty=Generic</txt-record>
-    <txt-record>note=${PRINTER_INFO}</txt-record>
 </service>
 </service-group>
 EOF
