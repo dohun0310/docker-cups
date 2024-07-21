@@ -16,9 +16,9 @@ fi
 # Function to restore default CUPS config if not present
 if [ ! -f /etc/cups/cupsd.conf ]; then
     echo "Copying default configuration files to /etc/cups..."
-    cp -rpn /etc/cups-temp/* /etc/cups/
+    cp -rpn /tmp/cups/* /etc/cups/
 fi
-rm -rf /etc/cups-temp
+rm -rf /tmp/cups
 
 # Function to configure CUPS and Avahi
 rm -rf /etc/avahi/services/*
