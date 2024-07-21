@@ -31,7 +31,7 @@ rm -rf /etc/avahi/services/*
 
 # Modify CUPS and Avahi configuration files
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
-sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes" /etc/cups/cupsd.conf
+sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
 sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf
 sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 
