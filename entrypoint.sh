@@ -24,9 +24,10 @@ rm -rf /tmp/* /var/tmp/*
 rm -rf /etc/avahi/services/*
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/>/<Location \/>\n  Allow All\n/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/admin>/<Location \/admin>\n  Allow All\n/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/admin\/conf>/<Location \/admin\/conf>\n  Allow All\n/" /etc/cups/cupsd.conf
+sed -i "s/<Location \/>/<Location \/>\n  Allow All/" /etc/cups/cupsd.conf
+sed -i "s/<Location \/admin>/<Location \/admin>\n  Allow All/" /etc/cups/cupsd.conf
+sed -i "s/<Location \/admin\/conf>/<Location \/admin\/conf>\n  Allow All/" /etc/cups/cupsd.conf
+sed -i "s/<Location \/admin\/log>/<Location \/admin\/log>\n  Allow All/" /etc/cups/cupsd.conf
 sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 
 # Start CUPS and Avahi daemons
