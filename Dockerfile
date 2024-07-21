@@ -50,3 +50,10 @@ CMD ["/usr/local/bin/entrypoint.sh"]
 
 # Clean up the image to reduce the size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# Configure CUPS and Avahi
+RUN rm -rf /etc/avahi/services/* && \
+  sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf && \
+  sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf && \
+  sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf && \
+  sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
