@@ -24,6 +24,11 @@ RUN apt-get update && \
   hp-ppd \
   hplip \
   avahi-daemon \
+  rsync \
+  python3 \
+	python3-dev \
+	python3-pip \
+	python3-cups \
   inotify-tools \
   libxml2-utils && \
   rm -rf /var/lib/apt/lists/*
