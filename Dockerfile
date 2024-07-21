@@ -43,5 +43,5 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Set the entrypoint to the custom script
 CMD ["/usr/local/bin/entrypoint.sh"]
 
-# Clean up temporary files to reduce image size
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Clean up the image to reduce the size
+RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
