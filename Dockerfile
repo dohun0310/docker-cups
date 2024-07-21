@@ -31,7 +31,7 @@ EXPOSE 631
 EXPOSE 5353
 
 # Copy the CUPS configuration files into the temporary directory
-RUN cp -rp /etc/cups /etc/cups-temp
+RUN cp -rp /etc/cups /tmp/cups
 
 # Declare a volume for the CUPS configuration
 VOLUME /etc/cups
@@ -44,4 +44,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 CMD ["/usr/local/bin/entrypoint.sh"]
 
 # Clean up the image to reduce the size
-RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*

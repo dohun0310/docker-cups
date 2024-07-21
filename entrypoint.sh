@@ -20,11 +20,11 @@ fi
 # Restore CUPS config in case the user does not have any
 if [ ! -f /etc/cups/cupsd.conf ]; then
     echo "Copying default configuration files to /etc/cups..."
-    cp -rpn /etc/cups-temp/* /etc/cups/
+    cp -rpn /tmp/cups* /etc/cups/
 fi
 
 # Remove temporary directory
-rm -rf /etc/cups-temp
+rm -rf /tmp/* /var/tmp/*
 
 # Remove Avahi service files
 rm -rf /etc/avahi/services/*
@@ -33,7 +33,7 @@ rm -rf /etc/avahi/services/*
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes" /etc/cups/cupsd.conf
 sed -i "/<\/Location>/s/.*/  Allow All\n&/" /etc/cups/cupsd.conf
-sed -i 's/.*enable\-dbus=.*/enable\-dbus\=no/' /etc/avahi/avahi-daemon.conf
+sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 
 # Start CUPS and Avahi daemon
 /usr/sbin/cupsd -f && /usr/sbin/avahi-daemon -D
