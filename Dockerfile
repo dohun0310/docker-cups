@@ -26,6 +26,7 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 # Expose ports for CUPS
+EXPOSE 53
 EXPOSE 631
 EXPOSE 5353
 
