@@ -5,6 +5,9 @@ FROM ubuntu:latest
 ARG TZ=Etc/UTC
 ARG USERNAME=print
 ARG PASSWORD=print
+ENV TZ=${TZ}
+ENV USERNAME=${USERNAME}
+ENV PASSWORD=${PASSWORD}
 
 # Update the package list, upgrade installed packages, and install necessary packages
 RUN apt-get update && \
