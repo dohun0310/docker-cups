@@ -25,6 +25,9 @@ if [ ! -f /etc/cups/cupsd.conf ]; then
     cp -rpn /etc/cups-temp/* /etc/cups/
 fi
 
+# Remove temporary directory
+rm -rf /etc/cups-temp
+
 # Modify CUPS and Avahi configuration files
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/Browsing On/" /etc/cups/cupsd.conf
