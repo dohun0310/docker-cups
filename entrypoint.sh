@@ -33,7 +33,7 @@ sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf
 
 # Start CUPS and Avahi daemon
 /usr/sbin/cupsd -f
-/usr/sbin/avahi-daemon --daemonize --daemonize
+/usr/sbin/avahi-daemon --daemonize
 
 # Ensure required tools are available
 command -v lpstat >/dev/null 2>&1 || { echo >&2 "lpstat command not found. Ensure CUPS is installed."; exit 1; }
