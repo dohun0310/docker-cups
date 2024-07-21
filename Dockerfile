@@ -33,7 +33,7 @@ EXPOSE 631
 EXPOSE 5353
 
 # Modify Avahi configuration files and start the Avahi daemon and enable it to start on boot
-RUN sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf && avahi-daemon --daemonize
+RUN sed -i 's/.*enable-dbus=.*/enable-dbus=no/' /etc/avahi/avahi-daemon.conf && /usr/sbin/avahi-daemon --daemonize --daemonize
 
 # Copy the CUPS configuration files into the temporary directory
 RUN cp -rp /etc/cups /etc/cups-temp
