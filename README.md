@@ -43,8 +43,7 @@ By following these detailed steps, you should be able to add a printer to your C
 
 ## Included package
 
-* sudo, curl, wget
-* cups, cups-client, cups-filters, cups-bsd, cups-filters
-* foomatic-db
+* sudo, curl, wget, rsync
+* cups, cups-client, cups-filters, cups-bsd, cups-filters, foomatic-db
 * printer-driver-all, printer-driver-cups-pdf, openprinting-ppds, hpijs-ppds, hp-ppd
-* avahi-daemon, inotify-tools, libxml2-utils
+* avahi-daemon, python3, python3-dev, python3-pip, python3-cups, inotify-tools, libxml2-utils
