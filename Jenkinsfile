@@ -58,7 +58,7 @@ pipeline {
             docker push ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION}
             """
 
-            sh "rm -f /tmp/${DOCKER_IMAGE_NAME}.tar"
+            sh "rm -f /var/tmp/${DOCKER_IMAGE_NAME}.tar"
           }
         }
       }
