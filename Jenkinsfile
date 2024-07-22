@@ -33,7 +33,7 @@ pipeline {
 
           sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_READY}' --form chat_id='${TELEGRAM_ID}'"
 
-          sh "export DOCKER_CLI_EXPERIMENTAL=enabled"
+          sh "docker buildx ls"
         }
       }
     }
