@@ -38,10 +38,7 @@ pipeline {
     stage("Build") {
       steps {
         script {
-          sh """
-          docker buildx create --name mybuilder --use || true
-          docker buildx build --platform linux/amd64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} --output type=docker,dest=/tmp/${DOCKER_IMAGE_NAME}.tar .
-          """
+          sh "docker buildx build --platform linux/amd64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} --output type=docker,dest=/tmp/${DOCKER_IMAGE_NAME}.tar ."
 
           sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_START}' --form chat_id='${TELEGRAM_ID}'"
         }
