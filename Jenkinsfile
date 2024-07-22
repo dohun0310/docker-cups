@@ -36,30 +36,14 @@ pipeline {
       }
     }
 
-    stage("Build") {
+    stage("Build and Push") {
       steps {
         script {
           sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_START}' --form chat_id='${TELEGRAM_ID}'"
 
-          sh "docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} --output type=oci,dest=/var/tmp/${DOCKER_IMAGE_NAME}.tar ."
-        }
-      }
-    }
+          sh "docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} --push ."
 
-    stage("Push") {
-      steps {
-        script {
-          docker.withRegistry("https://index.docker.io/v1/", DOCKERHUB_CREDENTIAL) {
-            sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_PUSH}' --form chat_id='${TELEGRAM_ID}'"
-
-            sh """
-            docker load -i /var/tmp/${DOCKER_IMAGE_NAME}.tar
-            docker push ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-            docker push ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION}
-            """
-
-            sh "rm -f /var/tmp/${DOCKER_IMAGE_NAME}.tar"
-          }
+          sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_PUSH}' --form chat_id='${TELEGRAM_ID}'"
         }
       }
     }
