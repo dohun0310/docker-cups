@@ -32,11 +32,15 @@ pipeline {
           VERSION = new Date().format("yyyy-MM-dd")
 
           sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_READY}' --form chat_id='${TELEGRAM_ID}'"
+
+          sh "docker buildx create --name mybuilder --driver docker-container"
+          sh "docker buildx inspect mybuilder --bootstrap"
+          sh "docker buildx use mybuilder"
         }
       }
     }
 
-    stage("Build and Push") {
+    stage("Build") {
       steps {
         script {
           docker.withRegistry("https://index.docker.io/v1/", DOCKERHUB_CREDENTIAL) {
