@@ -33,9 +33,7 @@ pipeline {
 
           sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_READY}' --form chat_id='${TELEGRAM_ID}'"
 
-          // sh "docker buildx create --name mybuilder --driver docker-container"
-          sh "docker buildx inspect mybuilder --bootstrap"
-          sh "docker buildx use mybuilder"
+          sh "export DOCKER_CLI_EXPERIMENTAL=enabled"
         }
       }
     }
@@ -46,7 +44,7 @@ pipeline {
           docker.withRegistry("https://index.docker.io/v1/", DOCKERHUB_CREDENTIAL) {
             sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_START}' --form chat_id='${TELEGRAM_ID}'"
 
-            sh "docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} --push ."
+            sh "docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --push ."
 
             sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_PUSH}' --form chat_id='${TELEGRAM_ID}'"
           }
