@@ -37,12 +37,13 @@ sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 generate_airprint_service() {
     echo "Generating AirPrint service file for $1"
     local PRINTER_NAME="$1"
-    local PRINTER_PRODUCT="$2"
-    local PRINTER_RP="$3"
-    local PRINTER_INFO="$4"
-    local PRINTER_UUID="$5"
-    local PRINTER_STATE="$6"
-    local PRINTER_TYPE="$7"
+    local PRINTER_URL="$2"
+    local PRINTER_PRODUCT="$3"
+    local PRINTER_RP="$4"
+    local PRINTER_INFO="$5"
+    local PRINTER_UUID="$6"
+    local PRINTER_STATE="$7"
+    local PRINTER_TYPE="$8"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
     cat <<EOF > "$OUTPUT_FILE"
@@ -54,7 +55,7 @@ generate_airprint_service() {
         <type>_ipp._tcp</type>
         <subtype>_universal._sub._ipp._tcp</subtype>
         <port>631</port>
-        <txt-record>TLS=1.2</txt-record>
+        <txt-record>adminurl=${PRINTER_URL}</txt-record>
         <txt-record>qtotal=1</txt-record>
         <txt-record>txtvers=1</txt-record>
         <txt-record>UUID=${PRINTER_UUID}</txt-record>
@@ -62,14 +63,11 @@ generate_airprint_service() {
         <txt-record>Binary=T</txt-record>
         <txt-record>TBCP=T</txt-record>
         <txt-record>Duplex=T</txt-record>
+        <txt-record>Color=T</txt-record>
         <txt-record>URF=none</txt-record>
         <txt-record>product=(${PRINTER_PRODUCT})</txt-record>
         <txt-record>rp=${PRINTER_RP}</txt-record>
         <txt-record>ty=${PRINTER_INFO}</txt-record>
-        <txt-record>Fax=T</txt-record>
-        <txt-record>Scan=T</txt-record>
-        <txt-record>Color=T</txt-record>
-        <txt-record>PaperMax=legal-A4</txt-record>
         <txt-record>note=${PRINTER_INFO}</txt-record>
         <txt-record>printer-state=${PRINTER_STATE}</txt-record>
         <txt-record>printer-type=0x${PRINTER_TYPE}</txt-record>
@@ -83,6 +81,7 @@ EOF
 get_printer_attributes() {
     echo "New printer detected: $1"
     local PRINTER_NAME="$1"
+    local PRINTER_URL=http://$(hostname -I | grep -oP '^\S+'):631/printers/"$PRINTER_NAME"
     local PRINTER_PRODUCT=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-make-and-model='\K[^']+(?=')")
     local PRINTER_RP=/printers/"$PRINTER_NAME"
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
@@ -90,7 +89,7 @@ get_printer_attributes() {
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
     local PRINTER_TYPE=$(lpstat -p "$PRINTER_NAME" | grep "printer-type" | cut -d: -f2 | xargs)
 
-    generate_airprint_service "$PRINTER_NAME" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_UUID" "$PRINTER_STATE" "$PRINTER_TYPE"
+    generate_airprint_service "$PRINTER_NAME" "$PRINTER_URL" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_UUID" "$PRINTER_STATE" "$PRINTER_TYPE"
 }
 
 # Handle changes in CUPS configuration
