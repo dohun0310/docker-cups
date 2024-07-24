@@ -44,7 +44,6 @@ generate_airprint_service() {
     local PRINTER_INFO="$5"
     local PRINTER_UUID="$6"
     local PRINTER_STATE="$7"
-    local PRINTER_TYPE="$8"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
     cat <<EOF > "$OUTPUT_FILE"
@@ -71,10 +70,11 @@ generate_airprint_service() {
         <txt-record>Binary=T</txt-record>
         <txt-record>Duplex=T</txt-record>
         <txt-record>URF=none</txt-record>
+        <txt-record>PaperMax=legal-A4</txt-record>
         <txt-record>note=${PRINTER_INFO}</txt-record>
         <txt-record>printer-state=${PRINTER_STATE}</txt-record>
-        <txt-record>printer-type=${PRINTER_TYPE}</txt-record>
-        <txt-record>pdl=application/pdf,application/postscript,application/vnd.cups-raster,application/octet-stream,image/urf,image/png,image/tiff,image/jpeg,image/gif,text/plain,text/html</txt-record>
+        <txt-record>printer-type=0x305c</txt-record>
+        <txt-record>pdl=application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf</txt-record>
     </service>
 </service-group>
 EOF
@@ -90,9 +90,8 @@ get_printer_attributes() {
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
     local PRINTER_UUID=$(grep -A 10 "<Printer $PRINTER_NAME>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+")
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
-    local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-type=\K[0-9a-fA-F]+")
 
-    generate_airprint_service "$PRINTER_NAME" "$PRINTER_URL" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_UUID" "$PRINTER_STATE" "$PRINTER_TYPE"
+    generate_airprint_service "$PRINTER_NAME" "$PRINTER_URL" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_UUID" "$PRINTER_STATE"
 }
 
 # Handle changes in CUPS configuration
