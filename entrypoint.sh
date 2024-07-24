@@ -24,10 +24,12 @@ rm -rf /tmp/* /var/tmp/*
 rm -rf /etc/avahi/services/*
 sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/>/<Location \/>\n  Allow All/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/admin>/<Location \/admin>\n  Allow All/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/admin\/conf>/<Location \/admin\/conf>\n  Allow All/" /etc/cups/cupsd.conf
-sed -i "s/<Location \/admin\/log>/<Location \/admin\/log>\n  Allow All/" /etc/cups/cupsd.conf
+if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
+    sed -i "s/<Location \/>/<Location \/>\n  Allow All/" /etc/cups/cupsd.conf
+    sed -i "s/<Location \/admin>/<Location \/admin>\n  Allow All/" /etc/cups/cupsd.conf
+    sed -i "s/<Location \/admin\/conf>/<Location \/admin\/conf>\n  Allow All/" /etc/cups/cupsd.conf
+    sed -i "s/<Location \/admin\/log>/<Location \/admin\/log>\n  Allow All/" /etc/cups/cupsd.conf
+fi
 sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 
 # Start CUPS and Avahi daemons
@@ -50,7 +52,7 @@ generate_airprint_service() {
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
 <service-group>
-    <name replace-wildcards="yes">${PRINTER_INFO}</name>
+    <name replace-wildcards="yes">${PRINTER_NAME}</name>
     <service>
         <type>_ipp._tcp</type>
         <subtype>_universal._sub._ipp._tcp</subtype>
