@@ -44,15 +44,14 @@ generate_airprint_service() {
     local PRINTER_PRODUCT="$3"
     local PRINTER_RP="$4"
     local PRINTER_INFO="$5"
-    local PRINTER_UUID="$6"
-    local PRINTER_STATE="$7"
+    local PRINTER_STATE="$6"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
     cat <<EOF > "$OUTPUT_FILE"
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
 <service-group>
-    <name replace-wildcards="yes">${PRINTER_NAME}</name>
+    <name replace-wildcards="yes">${PRINTER_INFO}</name>
     <service>
         <type>_ipp._tcp</type>
         <subtype>_universal._sub._ipp._tcp</subtype>
@@ -62,17 +61,11 @@ generate_airprint_service() {
         <txt-record>txtvers=1</txt-record>
         <txt-record>product=(${PRINTER_PRODUCT})</txt-record>
         <txt-record>rp=${PRINTER_RP}</txt-record>
-        <txt-record>ty=${PRINTER_INFO}</txt-record>
-        <txt-record>Fax=T</txt-record>
-        <txt-record>TBCP=T</txt-record>
-        <txt-record>Scan=T</txt-record>
-        <txt-record>UUID=${PRINTER_UUID}</txt-record>
         <txt-record>Transparent=T</txt-record>
         <txt-record>Color=T</txt-record>
         <txt-record>Binary=T</txt-record>
         <txt-record>Duplex=T</txt-record>
         <txt-record>URF=none</txt-record>
-        <txt-record>PaperMax=legal-A4</txt-record>
         <txt-record>note=${PRINTER_INFO}</txt-record>
         <txt-record>printer-state=${PRINTER_STATE}</txt-record>
         <txt-record>printer-type=0x305c</txt-record>
@@ -90,10 +83,9 @@ get_printer_attributes() {
     local PRINTER_PRODUCT=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-make-and-model='\K[^']+(?=')")
     local PRINTER_RP=/printers/"$PRINTER_NAME"
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
-    local PRINTER_UUID=$(grep -A 10 "<Printer $PRINTER_NAME>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+")
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
 
-    generate_airprint_service "$PRINTER_NAME" "$PRINTER_URL" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_UUID" "$PRINTER_STATE"
+    generate_airprint_service "$PRINTER_NAME" "$PRINTER_URL" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE"
 }
 
 # Handle changes in CUPS configuration
