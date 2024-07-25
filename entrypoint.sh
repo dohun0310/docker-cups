@@ -75,7 +75,7 @@ get_printer_attributes() {
     echo "New printer detected: $1"
     local PRINTER_NAME="$1"
     local PRINTER_COLOR=$(lpoptions -p "$PRINTER_NAME" | grep -q "print-color-mode=color" && echo T || echo F)
-    local PRINTER_RP=/printers/"$PRINTER_NAME"
+    local PRINTER_RP=printers/"$PRINTER_NAME"
     local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
     local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
     local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-type=\K[0-9a-fA-F]+")
