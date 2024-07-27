@@ -31,7 +31,7 @@ sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
 
 # Start CUPS and Avahi daemons
 /usr/sbin/cupsd -f &
-/usr/sbin/avahi-daemon --daemonize
+/usr/sbin/avahi-daemon -D
 
 # Function to generate AirPrint service files based on printer info
 generate_airprint_service() {
