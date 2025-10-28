@@ -23,16 +23,30 @@ rm -rf /tmp/* /var/tmp/*
 
 # Configure CUPS and Avahi
 rm -rf /etc/avahi/services/*
-sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
-sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
-if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
-    sed -i "s/</Location>/ Allow All\n</Location>/" /etc/cups/cupsd.conf
+
+if ! grep -q "Listen \*:631" /etc/cups/cupsd.conf; then
+    sed -i "s/Listen localhost:631/Listen *:631/" /etc/cups/cupsd.conf
 fi
-sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
+
+if ! grep -q "BrowseWebIF Yes" /etc/cups/cupsd.conf; then
+    sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
+fi
+
+if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
+    sed -i "s|</Location>| Allow All\n</Location>|" /etc/cups/cupsd.conf
+fi
+
+if ! grep -q "enable-dbus=no" /etc/avahi/avahi-daemon.conf; then
+    sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
+fi
 
 # Start CUPS and Avahi daemons
 /usr/sbin/cupsd -f &
+CUPSD_PID=$!
+sleep 2
+
 /usr/sbin/avahi-daemon -D
+sleep 1
 
 # Function to generate AirPrint service files based on printer info
 generate_airprint_service() {
