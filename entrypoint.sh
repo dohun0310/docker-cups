@@ -2,15 +2,15 @@
 set -euo pipefail
 
 # Set default values for TZ, USERNAME, PASSWORD if they are not provided
-TZ=${TZ:-Etc/UTC}
-USERNAME=${USERNAME:-print}
-PASSWORD=${PASSWORD:-print}
+TZ="${TZ:-Etc/UTC}"
+USERNAME="${USERNAME:-print}"
+PASSWORD="${PASSWORD:-print}"
 
 # Create CUPS admin user if it does not exist
-if [ $(grep -ci $USERNAME /etc/shadow) -eq 0 ]; then
-    useradd -r -G lpadmin -M $USERNAME
-    echo $USERNAME:$PASSWORD | chpasswd
-    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
+if ! id "${USERNAME}" >/dev/null 2>&1; then
+    useradd -r -G lpadmin -M "${USERNAME}"
+    echo "${USERNAME}:${PASSWORD}" | chpasswd
+    ln -fs "/usr/share/zoneinfo/${TZ}" /etc/localtime
     dpkg-reconfigure --frontend noninteractive tzdata
 fi
 
@@ -48,7 +48,7 @@ generate_airprint_service() {
     local PRINTER_TYPE="$9"
     local OUTPUT_FILE="/etc/avahi/services/AirPrint-${PRINTER_NAME}.service"
 
-    cat <<EOF > "$OUTPUT_FILE"
+    cat <<EOF > "${OUTPUT_FILE}"
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
 <service-group>
@@ -81,28 +81,46 @@ EOF
 get_printer_attributes() {
     echo "New printer detected: $1"
     local PRINTER_NAME="$1"
-    local PRINTER_URL=http://$(hostname -I | grep -oP '^\S+'):631/printers/"$PRINTER_NAME"
-    local PRINTER_UUID=$(grep -A 10 "<Printer $PRINTER_NAME>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+")
-    local PRINTER_COLOR=$(lpoptions -p "$PRINTER_NAME" | grep -q "print-color-mode=color" && echo T || echo F)
-    local PRINTER_PRODUCT=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-make-and-model='\K[^']+(?=')")
-    local PRINTER_RP=printers/"$PRINTER_NAME"
-    local PRINTER_INFO=$(lpstat -l -p "$PRINTER_NAME" | grep "Description" | cut -d: -f2 | xargs)
-    local PRINTER_STATE=$(lpstat -p "$PRINTER_NAME" | grep "enabled" >/dev/null && echo "3" || echo "5")
-    local PRINTER_TYPE=$(lpoptions -p "$PRINTER_NAME" | grep -oP "printer-type=\K[0-9a-fA-F]+")
+    local HOST_IP
+    HOST_IP=$(hostname -I 2>/dev/null | grep -oP '^\S+' || echo "localhost")
+    local PRINTER_URL="http://${HOST_IP}:631/printers/${PRINTER_NAME}"
+    local PRINTER_UUID
+    PRINTER_UUID=$(grep -A 10 "<Printer ${PRINTER_NAME}>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+" || echo "")
+    local PRINTER_COLOR
+    if lpoptions -p "${PRINTER_NAME}" 2>/dev/null | grep -q "print-color-mode=color"; then
+        PRINTER_COLOR="T"
+    else
+        PRINTER_COLOR="F"
+    fi
+    local PRINTER_PRODUCT
+    PRINTER_PRODUCT=$(lpoptions -p "${PRINTER_NAME}" 2>/dev/null | grep -oP "printer-make-and-model='\K[^']+(?=')" || echo "Unknown")
+    local PRINTER_RP="printers/${PRINTER_NAME}"
+    local PRINTER_INFO
+    PRINTER_INFO=$(lpstat -l -p "${PRINTER_NAME}" 2>/dev/null | grep "Description" | cut -d: -f2 | xargs || echo "${PRINTER_NAME}")
+    local PRINTER_STATE
+    if lpstat -p "${PRINTER_NAME}" 2>/dev/null | grep -q "enabled"; then
+        PRINTER_STATE="3"
+    else
+        PRINTER_STATE="5"
+    fi
+    local PRINTER_TYPE
+    PRINTER_TYPE=$(lpoptions -p "${PRINTER_NAME}" 2>/dev/null | grep -oP "printer-type=\K[0-9a-fA-F]+" || echo "0")
 
-    generate_airprint_service "$PRINTER_NAME" "$PRINTER_URL" "$PRINTER_UUID" "$PRINTER_COLOR" "$PRINTER_PRODUCT" "$PRINTER_RP" "$PRINTER_INFO" "$PRINTER_STATE" "$PRINTER_TYPE"
+    generate_airprint_service "${PRINTER_NAME}" "${PRINTER_URL}" "${PRINTER_UUID}" "${PRINTER_COLOR}" "${PRINTER_PRODUCT}" "${PRINTER_RP}" "${PRINTER_INFO}" "${PRINTER_STATE}" "${PRINTER_TYPE}"
 }
 
 # Handle changes in CUPS configuration
-/usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups |
+/usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups 2>/dev/null |
 while read -r directory events filename; do
-    if [ "$filename" = "printers.conf" ]; then
+    if [ "${filename}" = "printers.conf" ]; then
         echo "Changes detected in printers.conf"
         rm -rf /etc/avahi/services/AirPrint-*.service
-        for printer in $(lpstat -p | awk '{print $2}'); do
-            get_printer_attributes "$printer"
-        done
-        chmod 755 /var/cache/cups
+        while IFS= read -r printer; do
+            if [ -n "${printer}" ]; then
+                get_printer_attributes "${printer}"
+            fi
+        done < <(lpstat -p 2>/dev/null | awk '{print $2}')
+        chmod 755 /var/cache/cups 2>/dev/null || true
         rm -rf /var/cache/cups/*
     fi
 done
