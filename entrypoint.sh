@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Set default values for TZ, USERNAME, PASSWORD if they are not provided
 TZ=${TZ:-Etc/UTC}
