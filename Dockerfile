@@ -14,18 +14,18 @@ ENV TZ=${TZ} \
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
+      ca-certificates \
       curl \
       wget \
       cups \
       cups-client \
       cups-bsd \
       cups-filters \
+      cups-pdf \
       foomatic-db-compressed-ppds \
       printer-driver-all \
-      printer-driver-cups-pdf \
       openprinting-ppds \
       hpijs-ppds \
-      hp-ppd \
       hplip \
       inotify-tools \
       libxml2-utils && \
