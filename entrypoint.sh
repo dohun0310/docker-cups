@@ -135,6 +135,9 @@ regenerate_airprint_services() {
   done < <(lpstat -p 2>/dev/null | awk '{print $2}')
 }
 
+# Generate AirPrint services for printers that already exist on startup
+regenerate_airprint_services
+
 # Handle changes in CUPS configuration
 /usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups 2>/dev/null |
 while read -r directory events filename; do
