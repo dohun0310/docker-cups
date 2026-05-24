@@ -138,7 +138,7 @@ regenerate_airprint_services() {
 # Generate AirPrint services for printers that already exist on startup
 regenerate_airprint_services
 
-# Handle changes in CUPS configuration
+# Watch for changes in CUPS configuration in the background
 /usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups 2>/dev/null |
 while read -r directory events filename; do
   if [ "${filename}" = "printers.conf" ]; then
@@ -147,4 +147,7 @@ while read -r directory events filename; do
     chmod 755 /var/cache/cups 2>/dev/null || true
     rm -rf /var/cache/cups/*
   fi
-done
+done &
+
+# Keep the container running as long as cupsd is alive
+wait "${CUPSD_PID}"
