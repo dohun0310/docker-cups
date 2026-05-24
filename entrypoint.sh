@@ -50,6 +50,14 @@ sleep 2
 /usr/sbin/avahi-daemon -D
 sleep 1
 
+# Stop the daemons gracefully when the container is terminated
+cleanup() {
+  /usr/sbin/avahi-daemon -k 2>/dev/null || true
+  kill "${CUPSD_PID}" 2>/dev/null || true
+  exit 0
+}
+trap cleanup TERM INT
+
 # Function to generate AirPrint service files based on printer info
 generate_airprint_service() {
   echo "Generating AirPrint service file for $1"
