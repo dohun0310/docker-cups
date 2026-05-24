@@ -8,7 +8,7 @@ PASSWORD="${PASSWORD:-print}"
 
 # Configure timezone
 ln -fs "/usr/share/zoneinfo/${TZ}" /etc/localtime
-dpkg-reconfigure --frontend noninteractive tzdata
+echo "${TZ}" > /etc/timezone
 
 # Create CUPS admin user if it does not exist
 if ! id "${USERNAME}" >/dev/null 2>&1; then
