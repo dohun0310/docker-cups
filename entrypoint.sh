@@ -125,17 +125,22 @@ get_printer_attributes() {
   generate_airprint_service "${PRINTER_NAME}" "${PRINTER_URL}" "${PRINTER_UUID}" "${PRINTER_COLOR}" "${PRINTER_PRODUCT}" "${PRINTER_RP}" "${PRINTER_INFO}" "${PRINTER_STATE}" "${PRINTER_TYPE}"
 }
 
+# Function to regenerate AirPrint service files for all printers
+regenerate_airprint_services() {
+  rm -rf /etc/avahi/services/AirPrint-*.service
+  while IFS= read -r printer; do
+    if [ -n "${printer}" ]; then
+      get_printer_attributes "${printer}"
+    fi
+  done < <(lpstat -p 2>/dev/null | awk '{print $2}')
+}
+
 # Handle changes in CUPS configuration
 /usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups 2>/dev/null |
 while read -r directory events filename; do
   if [ "${filename}" = "printers.conf" ]; then
     echo "Changes detected in printers.conf"
-    rm -rf /etc/avahi/services/AirPrint-*.service
-    while IFS= read -r printer; do
-      if [ -n "${printer}" ]; then
-        get_printer_attributes "${printer}"
-      fi
-    done < <(lpstat -p 2>/dev/null | awk '{print $2}')
+    regenerate_airprint_services
     chmod 755 /var/cache/cups 2>/dev/null || true
     rm -rf /var/cache/cups/*
   fi
