@@ -13,6 +13,8 @@ ENV TZ=${TZ} \
 # Update the package list, upgrade installed packages, and install necessary packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+      avahi-daemon \
+      avahi-utils \
       ca-certificates \
       curl \
       wget \
