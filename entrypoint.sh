@@ -101,7 +101,7 @@ get_printer_attributes() {
   HOST_IP=$(hostname -I 2>/dev/null | grep -oP '^\S+' || echo "localhost")
   local PRINTER_URL="http://${HOST_IP}:631/printers/${PRINTER_NAME}"
   local PRINTER_UUID
-  PRINTER_UUID=$(grep -A 10 "<Printer ${PRINTER_NAME}>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+" || echo "")
+  PRINTER_UUID=$(grep -A 10 -E "<(Default)?Printer ${PRINTER_NAME}>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+" || echo "")
   local PRINTER_COLOR
   if lpoptions -p "${PRINTER_NAME}" 2>/dev/null | grep -q "print-color-mode=color"; then
     PRINTER_COLOR="T"
