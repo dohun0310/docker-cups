@@ -11,24 +11,26 @@ ENV PASSWORD=${PASSWORD}
 
 # Update the package list, upgrade installed packages, and install necessary packages
 RUN apt-get update && \
-  apt-get upgrade -y && \
-  apt-get install -y \
-  curl \
-  wget \
-  cups \
-  cups-client \
-  cups-bsd \
-  cups-filters \
-  foomatic-db-compressed-ppds \
-  printer-driver-all \
-  printer-driver-cups-pdf \
-  openprinting-ppds \
-  hpijs-ppds \
-  hp-ppd \
-  hplip \
-  inotify-tools \
-  libxml2-utils && \
-  rm -rf /var/lib/apt/lists/*
+    apt-get upgrade -y && \
+    apt-get install -y \
+      curl \
+      wget \
+      cups \
+      cups-client \
+      cups-bsd \
+      cups-filters \
+      foomatic-db-compressed-ppds \
+      printer-driver-all \
+      printer-driver-cups-pdf \
+      openprinting-ppds \
+      hpijs-ppds \
+      hp-ppd \
+      hplip \
+      inotify-tools \
+      libxml2-utils && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # Expose ports for CUPS
 EXPOSE 53
@@ -47,6 +49,3 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set the entrypoint to the custom script
 CMD ["/usr/local/bin/entrypoint.sh"]
-
-# Clean up the image to reduce the size
-RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
