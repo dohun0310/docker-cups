@@ -38,7 +38,7 @@ if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
 fi
 
 if ! grep -q "enable-dbus=no" /etc/avahi/avahi-daemon.conf; then
-  sed -i "s/.*enable\-dbus=.*/enable\-dbus\=no/" /etc/avahi/avahi-daemon.conf
+  sed -i "s/.*enable-dbus=.*/enable-dbus=no/" /etc/avahi/avahi-daemon.conf
 fi
 
 # Start CUPS and Avahi daemons
