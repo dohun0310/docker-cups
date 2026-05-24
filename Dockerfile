@@ -12,7 +12,6 @@ ENV TZ=${TZ} \
 
 # Update the package list, upgrade installed packages, and install necessary packages
 RUN apt-get update && \
-    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
@@ -29,7 +28,6 @@ RUN apt-get update && \
       hplip \
       inotify-tools \
       libxml2-utils && \
-    apt-get autoremove -y && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
