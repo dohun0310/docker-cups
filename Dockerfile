@@ -32,9 +32,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Expose ports for CUPS
-EXPOSE 53
-EXPOSE 631
-EXPOSE 5353
+EXPOSE 631 5353
 
 # Copy the CUPS configuration files into the temporary directory
 RUN cp -rp /etc/cups /tmp/cups
