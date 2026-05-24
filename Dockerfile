@@ -20,9 +20,9 @@ RUN apt-get update && \
       cups-client \
       cups-bsd \
       cups-filters \
-      cups-pdf \
       foomatic-db-compressed-ppds \
       printer-driver-all \
+      printer-driver-cups-pdf \
       openprinting-ppds \
       hpijs-ppds \
       hplip \
