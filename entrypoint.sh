@@ -10,11 +10,11 @@ PASSWORD="${PASSWORD:-print}"
 ln -fs "/usr/share/zoneinfo/${TZ}" /etc/localtime
 echo "${TZ}" > /etc/timezone
 
-# Create CUPS admin user if it does not exist
+# Create the CUPS admin user if it does not exist, then set its password
 if ! id "${USERNAME}" >/dev/null 2>&1; then
   useradd -r -G lpadmin -M "${USERNAME}"
-  echo "${USERNAME}:${PASSWORD}" | chpasswd
 fi
+echo "${USERNAME}:${PASSWORD}" | chpasswd
 
 # Restore default CUPS config if not present
 if [ ! -f /etc/cups/cupsd.conf ]; then
