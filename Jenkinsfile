@@ -1,74 +1,114 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    TELEGRAM_TOKEN = credentials("Telegram-Token")
-    TELEGRAM_ID = credentials("Telegram-ID")
+    options {
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+    }
 
-    GIT_COMMIT_MESSAGE = sh(returnStdout: true, script: "git log -n 1 --format=%s ${GIT_COMMIT}").trim()
-    GIT_COMMIT_SHORT = sh(returnStdout: true, script: "git rev-parse --short ${GIT_COMMIT}").trim()
+    triggers {
+        cron('H H * * 0')
+        pollSCM('* * * * *')
+    }
 
-    BUILD_READY = "${JOB_NAME}에서 새로운 커밋 감지. ${GIT_BRANCH} 브랜치의 ${GIT_COMMIT_MESSAGE}(${GIT_COMMIT_SHORT}) 커밋에 대한 빌드를 준비중입니다."
-    BUILD_START = "${GIT_BRANCH} 브랜치의 ${GIT_COMMIT_MESSAGE}(${GIT_COMMIT_SHORT}) 커밋에 대한 빌드를 시작합니다."
-    BUILD_PUSH = "${GIT_BRANCH} 브랜치의 ${GIT_COMMIT_MESSAGE}(${GIT_COMMIT_SHORT}) 커밋에 대한 빌드를 푸시합니다."
+    parameters {
+        string(name: 'IMAGE_PLATFORMS', defaultValue: 'linux/amd64,linux/arm64,linux/arm/v7', description: 'Target platforms for the multi-architecture image')
+    }
 
-    BUILD_SUCCESS = "${JOB_NAME}의 새로운 빌드를 정상적으로 완료하였습니다."
-    BUILD_FAILURE = "${JOB_NAME}의 새로운 빌드를 실패하였습니다."
-  }
+    environment {
+        IMAGE_NAME = 'dohun0310/cups'
+        REGISTRY_URL = 'https://index.docker.io/v1/'
+        REGISTRY_CREDENTIALS_ID = 'Docker-Hub'
+        BUILDER_NAME = "cups-builder-${BUILD_TAG}"
+        IMAGE_PLATFORMS = "${params.IMAGE_PLATFORMS ?: 'linux/amd64,linux/arm64,linux/arm/v7'}"
+    }
 
-  triggers {
-    cron('H H * * 0')
-    pollSCM('* * * * *')
-  }
-
-  stages {
-    stage("Set") {
-      steps {
-        script {
-          DOCKERHUB_CREDENTIAL = "Docker-Hub"
-          DOCKER_IMAGE_NAME = "cups"
-          DOCKER_IMAGE_STORAGE = "dohun0310"
-          DOCKER_IMAGE_TAG = "latest"
-          VERSION = new Date().format("yyyy-MM-dd")
-
-          sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_READY}' --form chat_id='${TELEGRAM_ID}'"
-
-          sh "docker run --privileged --rm tonistiigi/binfmt --install all"
+    stages {
+        stage('Checkout') {
+            steps {
+                deleteDir()
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage("Build") {
-      steps {
-        script {
-          docker.withRegistry("https://index.docker.io/v1/", DOCKERHUB_CREDENTIAL) {
-            sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_START}' --form chat_id='${TELEGRAM_ID}'"
-
-            sh "docker buildx ls | grep mybuilder && docker buildx rm mybuilder || true"
-            sh "docker buildx create --name mybuilder --driver docker-container"
-            sh "docker buildx inspect mybuilder --bootstrap"
-            sh "docker buildx use mybuilder"
-
-            sh "docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${VERSION} -t ${DOCKER_IMAGE_STORAGE}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --push ."
-
-            sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_PUSH}' --form chat_id='${TELEGRAM_ID}'"
-          }
+        stage('Prepare builder') {
+            steps {
+                sh '''
+                    set -eu
+                    docker run --privileged --rm tonistiigi/binfmt --install all
+                    docker buildx create --name "${BUILDER_NAME}" --driver docker-container --bootstrap
+                '''
+            }
         }
-      }
-    }
-  }
 
-  post {
-    success {
-      script {
-        sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_SUCCESS}' --form chat_id='${TELEGRAM_ID}'"
-      }
+        stage('Publish image') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    def version = new Date().format('yyyy-MM-dd')
+
+                    docker.withRegistry(env.REGISTRY_URL, env.REGISTRY_CREDENTIALS_ID) {
+                        withEnv(["IMAGE_VERSION=${version}"]) {
+                            sh '''
+                                set -eu
+                                docker buildx build \
+                                    --builder "${BUILDER_NAME}" \
+                                    --platform "${IMAGE_PLATFORMS}" \
+                                    --tag "${IMAGE_NAME}:${IMAGE_VERSION}" \
+                                    --tag "${IMAGE_NAME}:latest" \
+                                    --push \
+                                    .
+                            '''
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    failure {
-      script {
-        sh "curl --location --request POST 'https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage' --form text='${BUILD_FAILURE}' --form chat_id='${TELEGRAM_ID}'"
-      }
+    post {
+        always {
+            sh 'docker buildx rm "${BUILDER_NAME}" >/dev/null 2>&1 || true'
+            script {
+                def icon = [
+                    SUCCESS: '✅',
+                    FAILURE: '❌',
+                    ABORTED: '⚠️',
+                    UNSTABLE: '⚠️'
+                ].get(currentBuild.currentResult, 'ℹ️')
+
+                def message = """${icon} ${env.JOB_NAME} #${env.BUILD_NUMBER}: ${currentBuild.currentResult}
+Commit: ${(env.GIT_COMMIT ?: 'unknown').take(7)}
+Build: ${env.BUILD_URL}"""
+
+                try {
+                    withCredentials([
+                        string(credentialsId: 'Telegram-Token', variable: 'TELEGRAM_TOKEN'),
+                        string(credentialsId: 'Telegram-ID', variable: 'TELEGRAM_ID')
+                    ]) {
+                        withEnv(["TELEGRAM_MESSAGE=${message}"]) {
+                            def notified = sh(
+                                returnStatus: true,
+                                script: '''
+                                    set +x
+                                    curl --silent --show-error --fail --max-time 10 --output /dev/null \
+                                        --data-urlencode "chat_id=${TELEGRAM_ID}" \
+                                        --data-urlencode "text=${TELEGRAM_MESSAGE}" \
+                                        "${TELEGRAM_API_BASE:-https://api.telegram.org}/bot${TELEGRAM_TOKEN}/sendMessage"
+                                '''
+                            )
+
+                            if (notified != 0) {
+                                echo 'Telegram notification failed'
+                            }
+                        }
+                    }
+                } catch (Exception error) {
+                    echo "Telegram notification unavailable: ${error.class.simpleName}"
+                }
+            }
+        }
     }
-  }
 }
