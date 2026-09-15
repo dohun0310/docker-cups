@@ -99,16 +99,31 @@ configure_cups_location_access() {
         next
       }
 
+      if (!in_location && normalized == "</location>") {
+        malformed = 1
+        print
+        next
+      }
+
       if (in_location && normalized ~ /^<[^\/!][^>]*>$/) {
         subsection_depth++
+        subsection_tag = normalized
+        sub(/^</, "", subsection_tag)
+        sub(/[[:space:]>].*$/, "", subsection_tag)
+        subsection_tags[subsection_depth] = subsection_tag
         print
         next
       }
 
       if (in_location && normalized ~ /^<\/[^>]+>$/) {
-        if (subsection_depth == 0) {
+        closing_tag = normalized
+        sub(/^<\//, "", closing_tag)
+        sub(/[[:space:]>].*$/, "", closing_tag)
+
+        if (subsection_depth == 0 || subsection_tags[subsection_depth] != closing_tag) {
           malformed = 1
         } else {
+          delete subsection_tags[subsection_depth]
           subsection_depth--
         }
 
