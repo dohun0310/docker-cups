@@ -41,9 +41,18 @@ if ! grep -q "BrowseWebIF Yes" /etc/cups/cupsd.conf; then
   sed -i -E "s/^Browsing (No|Off)/BrowseWebIF Yes\nBrowsing Yes/I" /etc/cups/cupsd.conf
 fi
 
-if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
-  sed -i '/^<Location \/>/,/^<\/Location>/ s|^</Location>|  Allow All\n</Location>|' /etc/cups/cupsd.conf
-fi
+ensure_cups_location_access() {
+  local location="$1"
+  local access_rule="$2"
+  local config="${3:-/etc/cups/cupsd.conf}"
+
+  if ! sed -n "\|^<Location ${location}>$|,\|^</Location>$|p" "${config}" |
+    grep -q "^[[:space:]]*${access_rule}$"; then
+    sed -i "\|^<Location ${location}>$|,\|^</Location>$| s|^</Location>|  ${access_rule}\\n</Location>|" "${config}"
+  fi
+}
+
+ensure_cups_location_access "/" "Allow All"
 
 if ! grep -q "enable-dbus=no" /etc/avahi/avahi-daemon.conf; then
   sed -i "s/.*enable-dbus=.*/enable-dbus=no/" /etc/avahi/avahi-daemon.conf
