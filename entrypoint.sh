@@ -11,6 +11,10 @@ ADVERTISE_HOST="${ADVERTISE_HOST:-$(hostname -I 2>/dev/null | awk '{print $1}' |
 ADVERTISE_HOST="${ADVERTISE_HOST:-localhost}"
 
 # Configure timezone
+if [ ! -f "/usr/share/zoneinfo/${TZ}" ]; then
+  echo "Unknown timezone: ${TZ}" >&2
+  exit 1
+fi
 ln -fs "/usr/share/zoneinfo/${TZ}" /etc/localtime
 echo "${TZ}" > /etc/timezone
 
