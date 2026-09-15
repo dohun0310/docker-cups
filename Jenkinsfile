@@ -27,6 +27,14 @@ pipeline {
             steps {
                 deleteDir()
                 checkout scm
+
+                script {
+                    def branch = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '')
+                        .replaceFirst(/^origin\//, '')
+
+                    env.CURRENT_BRANCH = branch
+                    env.PUBLISH_IMAGE = branch == 'main' ? 'true' : 'false'
+                }
             }
         }
 
