@@ -50,7 +50,7 @@ pipeline {
 
         stage('Build image') {
             when {
-                not { branch 'main' }
+                environment name: 'PUBLISH_IMAGE', value: 'false'
             }
             steps {
                 sh '''
