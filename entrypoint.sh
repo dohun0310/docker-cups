@@ -53,6 +53,9 @@ ensure_cups_location_access() {
 }
 
 ensure_cups_location_access "/" "Allow All"
+ensure_cups_location_access "/admin" "Allow @LOCAL"
+ensure_cups_location_access "/admin/conf" "Allow @LOCAL"
+ensure_cups_location_access "/admin/log" "Allow @LOCAL"
 
 if ! grep -q "enable-dbus=no" /etc/avahi/avahi-daemon.conf; then
   sed -i "s/.*enable-dbus=.*/enable-dbus=no/" /etc/avahi/avahi-daemon.conf
