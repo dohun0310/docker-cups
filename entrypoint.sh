@@ -49,6 +49,17 @@ if ! grep -q "enable-dbus=no" /etc/avahi/avahi-daemon.conf; then
   sed -i "s/.*enable-dbus=.*/enable-dbus=no/" /etc/avahi/avahi-daemon.conf
 fi
 
+# Stop the daemons gracefully when the container is terminated
+CUPSD_PID=""
+cleanup() {
+  /usr/sbin/avahi-daemon -k 2>/dev/null || true
+  if [ -n "${CUPSD_PID}" ]; then
+    kill "${CUPSD_PID}" 2>/dev/null || true
+  fi
+  exit 0
+}
+trap cleanup TERM INT
+
 # Start CUPS and Avahi daemons
 /usr/sbin/cupsd -f &
 CUPSD_PID=$!
@@ -56,14 +67,6 @@ sleep 2
 
 /usr/sbin/avahi-daemon -D
 sleep 1
-
-# Stop the daemons gracefully when the container is terminated
-cleanup() {
-  /usr/sbin/avahi-daemon -k 2>/dev/null || true
-  kill "${CUPSD_PID}" 2>/dev/null || true
-  exit 0
-}
-trap cleanup TERM INT
 
 # Function to generate AirPrint service files based on printer info
 generate_airprint_service() {
