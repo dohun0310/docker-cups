@@ -60,13 +60,23 @@ cleanup() {
 }
 trap cleanup TERM INT
 
-# Start CUPS and Avahi daemons
+# Start CUPS and wait until it is ready to accept requests
 /usr/sbin/cupsd -f &
 CUPSD_PID=$!
-sleep 2
 
+for _ in $(seq 1 30); do
+  if lpstat -r >/dev/null 2>&1; then
+    break
+  fi
+  if ! kill -0 "${CUPSD_PID}" 2>/dev/null; then
+    echo "cupsd failed to start" >&2
+    exit 1
+  fi
+  sleep 1
+done
+
+# Start Avahi for mDNS advertisement
 /usr/sbin/avahi-daemon -D
-sleep 1
 
 # Function to generate AirPrint service files based on printer info
 generate_airprint_service() {
