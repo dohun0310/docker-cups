@@ -34,7 +34,7 @@ if ! grep -q "Listen \*:631" /etc/cups/cupsd.conf; then
 fi
 
 if ! grep -q "BrowseWebIF Yes" /etc/cups/cupsd.conf; then
-  sed -i "s/Browsing No/BrowseWebIF Yes\nBrowsing Yes/" /etc/cups/cupsd.conf
+  sed -i -E "s/^Browsing (No|Off)/BrowseWebIF Yes\nBrowsing Yes/I" /etc/cups/cupsd.conf
 fi
 
 if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
