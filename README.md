@@ -5,18 +5,37 @@
 ### Default
 
 ```bash
-docker run -d -p 631:631 -p 5353:5353/udp --name cups dohun0310/cups
+docker run -d --network host --name cups dohun0310/cups
 ```
 
 The default username/password for the Cups server is `print`/`print`
 
+mDNS is a multicast protocol and does not pass through Docker's bridge network, so `--network host` is required for AirPrint discovery. Without it the web interface still works, but iOS devices will not find the printer.
+
 ### Custom
 
 ```bash
-docker run -d -p 631:631 -p 5353:5353/udp -v $(pwd):/etc/cups -e TZ=Asia/Seoul -e USERNAME=user -e PASSWORD=password --name cups dohun0310/cups
+docker run -d --network host -v $(pwd):/etc/cups -e TZ=Asia/Seoul -e USERNAME=user -e PASSWORD=password --name cups dohun0310/cups
 ```
 
-You can specify your own username and password. You can access `/etc/cups`. 
+You can specify your own username and password. You can access `/etc/cups`.
+
+### Without host networking
+
+```bash
+docker run -d -p 631:631/tcp -p 5353:5353/udp -e ADVERTISE_HOST=192.168.0.10 --name cups dohun0310/cups
+```
+
+Set `ADVERTISE_HOST` to an address clients can reach, otherwise the AirPrint record points at the container's internal IP. AirPrint discovery may still be unavailable in this mode.
+
+### Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `TZ` | `Etc/UTC` | Container timezone |
+| `USERNAME` | `print` | CUPS admin user |
+| `PASSWORD` | `print` | CUPS admin password |
+| `ADVERTISE_HOST` | container IP | Host advertised to AirPrint clients |
 
 ## How to Add Printers to the CUPS Server
 
