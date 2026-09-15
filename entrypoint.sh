@@ -72,6 +72,7 @@ configure_cups_location_access() {
         sub(/[[:space:]]*>$/, "", location)
         location = trim(location)
         in_location = 1
+        subsection_depth = 0
         target = location in desired
         access_written = 0
 
@@ -84,6 +85,10 @@ configure_cups_location_access() {
       }
 
       if (in_location && normalized == "</location>") {
+        if (subsection_depth != 0) {
+          malformed = 1
+        }
+
         if (target && !access_written) {
           print "  " desired[location]
         }
@@ -94,7 +99,24 @@ configure_cups_location_access() {
         next
       }
 
-      if (target && normalized ~ /^allow[[:space:]]+/) {
+      if (in_location && normalized ~ /^<[^\/!][^>]*>$/) {
+        subsection_depth++
+        print
+        next
+      }
+
+      if (in_location && normalized ~ /^<\/[^>]+>$/) {
+        if (subsection_depth == 0) {
+          malformed = 1
+        } else {
+          subsection_depth--
+        }
+
+        print
+        next
+      }
+
+      if (target && subsection_depth == 0 && normalized ~ /^allow[[:space:]]+/) {
         if (!access_written) {
           indentation = $0
           sub(/[^[:space:]].*$/, "", indentation)
@@ -128,9 +150,12 @@ configure_cups_location_access() {
     return 1
   fi
 
-  chmod --reference="${config}" "${temp_config}"
-  chown --reference="${config}" "${temp_config}"
-  mv "${temp_config}" "${config}"
+  if ! chmod --reference="${config}" "${temp_config}" ||
+    ! chown --reference="${config}" "${temp_config}" ||
+    ! mv "${temp_config}" "${config}"; then
+    rm -f "${temp_config}"
+    return 1
+  fi
 }
 
 configure_cups_location_access
