@@ -167,13 +167,20 @@ regenerate_airprint_services() {
 regenerate_airprint_services
 
 # Watch for changes in CUPS configuration in the background
-/usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups 2>/dev/null |
-while read -r directory events filename; do
-  if [ "${filename}" = "printers.conf" ]; then
-    echo "Changes detected in printers.conf"
-    regenerate_airprint_services
-  fi
-done &
+watch_printers() {
+  while true; do
+    /usr/bin/inotifywait -m -e close_write,moved_to,create /etc/cups 2>/dev/null |
+    while read -r directory events filename; do
+      if [ "${filename}" = "printers.conf" ]; then
+        echo "Changes detected in printers.conf"
+        regenerate_airprint_services
+      fi
+    done
+    echo "Printer watcher stopped unexpectedly, restarting..." >&2
+    sleep 1
+  done
+}
+watch_printers &
 
 # Keep the container running as long as cupsd is alive
 wait "${CUPSD_PID}"
