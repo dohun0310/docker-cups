@@ -22,9 +22,9 @@ assignees: [dohun0310]
 
 ## Tasks
 <!-- List the tasks to be performed. -->
-- [] Task 1
-- [] Task 2
-- [] Task 3
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
 
 ## Completion Criteria
 <!-- Close this issue when all of the following conditions are met. -->
