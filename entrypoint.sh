@@ -75,6 +75,7 @@ configure_cups_location_access() {
         subsection_depth = 0
         target = location in desired
         access_written = 0
+        satisfy_written = 0
 
         if (target) {
           seen[location]++
@@ -137,6 +138,16 @@ configure_cups_location_access() {
           sub(/[^[:space:]].*$/, "", indentation)
           print indentation desired[location]
           access_written = 1
+        }
+        next
+      }
+
+      if (target && location != "/" && subsection_depth == 0 && normalized ~ /^satisfy[[:space:]]+/) {
+        if (!satisfy_written) {
+          indentation = $0
+          sub(/[^[:space:]].*$/, "", indentation)
+          print indentation "Satisfy All"
+          satisfy_written = 1
         }
         next
       }
