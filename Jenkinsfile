@@ -27,6 +27,14 @@ pipeline {
             steps {
                 deleteDir()
                 checkout scm
+
+                script {
+                    def branch = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '')
+                        .replaceFirst(/^origin\//, '')
+
+                    env.CURRENT_BRANCH = branch
+                    env.PUBLISH_IMAGE = branch == 'main' ? 'true' : 'false'
+                }
             }
         }
 
@@ -42,7 +50,7 @@ pipeline {
 
         stage('Build image') {
             when {
-                not { branch 'main' }
+                environment name: 'PUBLISH_IMAGE', value: 'false'
             }
             steps {
                 sh '''
@@ -58,7 +66,7 @@ pipeline {
 
         stage('Publish image') {
             when {
-                branch 'main'
+                environment name: 'PUBLISH_IMAGE', value: 'true'
             }
             steps {
                 script {
