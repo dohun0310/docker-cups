@@ -40,6 +40,22 @@ pipeline {
             }
         }
 
+        stage('Build image') {
+            when {
+                not { branch 'main' }
+            }
+            steps {
+                sh '''
+                    set -eu
+                    docker buildx build \
+                        --builder "${BUILDER_NAME}" \
+                        --platform "${IMAGE_PLATFORMS}" \
+                        --tag "${IMAGE_NAME}:ci" \
+                        .
+                '''
+            }
+        }
+
         stage('Publish image') {
             when {
                 branch 'main'
