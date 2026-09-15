@@ -19,6 +19,7 @@ pipeline {
         REGISTRY_URL = 'https://index.docker.io/v1/'
         REGISTRY_CREDENTIALS_ID = 'Docker-Hub'
         BUILDER_NAME = "cups-builder-${BUILD_TAG}"
+        BUILDX_CONFIG = "${WORKSPACE}/.buildx"
         IMAGE_PLATFORMS = "${params.IMAGE_PLATFORMS ?: 'linux/amd64,linux/arm64,linux/arm/v7'}"
     }
 
@@ -42,8 +43,12 @@ pipeline {
             steps {
                 sh '''
                     set -eu
+                    mkdir -p "${BUILDX_CONFIG}"
                     docker run --privileged --rm tonistiigi/binfmt --install all
-                    docker buildx create --name "${BUILDER_NAME}" --driver docker-container --bootstrap
+                    docker buildx create \
+                        --name "${BUILDER_NAME}" \
+                        --driver docker-container \
+                        --bootstrap
                 '''
             }
         }
