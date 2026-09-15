@@ -41,9 +41,150 @@ if ! grep -q "BrowseWebIF Yes" /etc/cups/cupsd.conf; then
   sed -i -E "s/^Browsing (No|Off)/BrowseWebIF Yes\nBrowsing Yes/I" /etc/cups/cupsd.conf
 fi
 
-if ! grep -q "Allow All" /etc/cups/cupsd.conf; then
-  sed -i '/^<Location \/>/,/^<\/Location>/ s|^</Location>|  Allow All\n</Location>|' /etc/cups/cupsd.conf
-fi
+configure_cups_location_access() {
+  local config="${1:-/etc/cups/cupsd.conf}"
+  local temp_config
+  temp_config=$(mktemp "${config}.XXXXXX")
+
+  if ! awk '
+    function trim(value) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      return value
+    }
+
+    BEGIN {
+      desired["/"] = "Allow All"
+      desired["/admin"] = "Allow @LOCAL"
+      desired["/admin/conf"] = "Allow @LOCAL"
+      desired["/admin/log"] = "Allow @LOCAL"
+    }
+
+    {
+      normalized = tolower(trim($0))
+
+      if (normalized ~ /^<location[[:space:]]+.*>$/) {
+        if (in_location) {
+          malformed = 1
+        }
+
+        location = normalized
+        sub(/^<location[[:space:]]+/, "", location)
+        sub(/[[:space:]]*>$/, "", location)
+        location = trim(location)
+        in_location = 1
+        subsection_depth = 0
+        target = location in desired
+        access_written = 0
+        satisfy_written = 0
+
+        if (target) {
+          seen[location]++
+        }
+
+        print
+        next
+      }
+
+      if (in_location && normalized == "</location>") {
+        if (subsection_depth != 0) {
+          malformed = 1
+        }
+
+        if (target && !access_written) {
+          print "  " desired[location]
+        }
+
+        print
+        in_location = 0
+        target = 0
+        next
+      }
+
+      if (!in_location && normalized == "</location>") {
+        malformed = 1
+        print
+        next
+      }
+
+      if (in_location && normalized ~ /^<[^\/!][^>]*>$/) {
+        subsection_depth++
+        subsection_tag = normalized
+        sub(/^</, "", subsection_tag)
+        sub(/[[:space:]>].*$/, "", subsection_tag)
+        subsection_tags[subsection_depth] = subsection_tag
+        print
+        next
+      }
+
+      if (in_location && normalized ~ /^<\/[^>]+>$/) {
+        closing_tag = normalized
+        sub(/^<\//, "", closing_tag)
+        sub(/[[:space:]>].*$/, "", closing_tag)
+
+        if (subsection_depth == 0 || subsection_tags[subsection_depth] != closing_tag) {
+          malformed = 1
+        } else {
+          delete subsection_tags[subsection_depth]
+          subsection_depth--
+        }
+
+        print
+        next
+      }
+
+      if (target && subsection_depth == 0 && normalized ~ /^allow[[:space:]]+/) {
+        if (!access_written) {
+          indentation = $0
+          sub(/[^[:space:]].*$/, "", indentation)
+          print indentation desired[location]
+          access_written = 1
+        }
+        next
+      }
+
+      if (target && location != "/" && subsection_depth == 0 && normalized ~ /^satisfy[[:space:]]+/) {
+        if (!satisfy_written) {
+          indentation = $0
+          sub(/[^[:space:]].*$/, "", indentation)
+          print indentation "Satisfy All"
+          satisfy_written = 1
+        }
+        next
+      }
+
+      print
+    }
+
+    END {
+      if (in_location) {
+        malformed = 1
+      }
+
+      for (location in desired) {
+        if (seen[location] != 1) {
+          malformed = 1
+        }
+      }
+
+      if (malformed) {
+        print "Unable to update CUPS access rules: malformed or missing Location block" > "/dev/stderr"
+        exit 1
+      }
+    }
+  ' "${config}" > "${temp_config}"; then
+    rm -f "${temp_config}"
+    return 1
+  fi
+
+  if ! chmod --reference="${config}" "${temp_config}" ||
+    ! chown --reference="${config}" "${temp_config}" ||
+    ! mv "${temp_config}" "${config}"; then
+    rm -f "${temp_config}"
+    return 1
+  fi
+}
+
+configure_cups_location_access
 
 if ! grep -q "enable-dbus=no" /etc/avahi/avahi-daemon.conf; then
   sed -i "s/.*enable-dbus=.*/enable-dbus=no/" /etc/avahi/avahi-daemon.conf

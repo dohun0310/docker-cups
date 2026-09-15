@@ -18,7 +18,6 @@ pipeline {
         IMAGE_NAME = 'dohun0310/cups'
         REGISTRY_URL = 'https://index.docker.io/v1/'
         REGISTRY_CREDENTIALS_ID = 'Docker-Hub'
-        BUILDER_NAME = "cups-builder-${BUILD_TAG}"
         BUILDX_CONFIG = "${WORKSPACE}/.buildx"
         IMAGE_PLATFORMS = "${params.IMAGE_PLATFORMS ?: 'linux/amd64,linux/arm64,linux/arm/v7'}"
     }
@@ -35,6 +34,10 @@ pipeline {
 
                     env.CURRENT_BRANCH = branch
                     env.PUBLISH_IMAGE = branch == 'main' ? 'true' : 'false'
+
+                    def sanitizedBuildTag = env.BUILD_TAG
+                        .replaceAll('[^A-Za-z0-9._-]', '-')
+                    env.BUILDER_NAME = "cups-builder-${sanitizedBuildTag}"
                 }
             }
         }
