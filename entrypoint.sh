@@ -127,7 +127,9 @@ get_printer_attributes() {
     PRINTER_STATE="5"
   fi
   local PRINTER_TYPE
-  PRINTER_TYPE=$(lpoptions -p "${PRINTER_NAME}" 2>/dev/null | grep -oP "printer-type=\K[0-9a-fA-F]+" || echo "0")
+  local PRINTER_TYPE_DEC
+  PRINTER_TYPE_DEC=$(lpoptions -p "${PRINTER_NAME}" 2>/dev/null | grep -oP "printer-type=\K[0-9]+" || echo "0")
+  PRINTER_TYPE=$(printf '%x' "${PRINTER_TYPE_DEC}")
 
   generate_airprint_service "${PRINTER_NAME}" "${PRINTER_URL}" "${PRINTER_UUID}" "${PRINTER_COLOR}" "${PRINTER_PRODUCT}" "${PRINTER_RP}" "${PRINTER_INFO}" "${PRINTER_STATE}" "${PRINTER_TYPE}"
 }
