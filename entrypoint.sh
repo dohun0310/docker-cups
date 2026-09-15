@@ -6,6 +6,10 @@ TZ="${TZ:-Etc/UTC}"
 USERNAME="${USERNAME:-print}"
 PASSWORD="${PASSWORD:-print}"
 
+# Host advertised to AirPrint clients; override when the container IP is unreachable
+ADVERTISE_HOST="${ADVERTISE_HOST:-$(hostname -I 2>/dev/null | awk '{print $1}' || true)}"
+ADVERTISE_HOST="${ADVERTISE_HOST:-localhost}"
+
 # Configure timezone
 ln -fs "/usr/share/zoneinfo/${TZ}" /etc/localtime
 echo "${TZ}" > /etc/timezone
@@ -104,9 +108,7 @@ EOF
 get_printer_attributes() {
   echo "New printer detected: $1"
   local PRINTER_NAME="$1"
-  local HOST_IP
-  HOST_IP=$(hostname -I 2>/dev/null | grep -oP '^\S+' || echo "localhost")
-  local PRINTER_URL="http://${HOST_IP}:631/printers/${PRINTER_NAME}"
+  local PRINTER_URL="http://${ADVERTISE_HOST}:631/printers/${PRINTER_NAME}"
   local PRINTER_UUID
   PRINTER_UUID=$(grep -A 10 -E "<(Default)?Printer ${PRINTER_NAME}>" /etc/cups/printers.conf | grep -oP "urn:uuid:\K[0-9a-fA-F-]+" || echo "")
   local PRINTER_COLOR
