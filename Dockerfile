@@ -1,13 +1,9 @@
 # Set the base image to the latest version of Ubuntu
 FROM ubuntu:latest
 
-# Declare build-time arguments for the username, password, and timezone
+# Declare the build-time timezone argument; credentials are supplied at runtime
 ARG TZ=Etc/UTC
-ARG USERNAME=print
-ARG PASSWORD=print
 ENV TZ=${TZ} \
-    USERNAME=${USERNAME} \
-    PASSWORD=${PASSWORD} \
     DEBIAN_FRONTEND=noninteractive
 
 # Update the package list, upgrade installed packages, and install necessary packages
