@@ -153,8 +153,6 @@ while read -r directory events filename; do
   if [ "${filename}" = "printers.conf" ]; then
     echo "Changes detected in printers.conf"
     regenerate_airprint_services
-    chmod 755 /var/cache/cups 2>/dev/null || true
-    rm -rf /var/cache/cups/*
   fi
 done &
 
