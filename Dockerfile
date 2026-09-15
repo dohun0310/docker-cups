@@ -34,8 +34,8 @@ RUN apt-get update && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
-# Expose ports for CUPS
-EXPOSE 631 5353
+# Expose ports for CUPS (IPP over TCP) and mDNS (over UDP)
+EXPOSE 631/tcp 5353/udp
 
 # Copy the CUPS configuration files into the temporary directory
 RUN cp -rp /etc/cups /tmp/cups
