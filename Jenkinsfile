@@ -29,15 +29,28 @@ pipeline {
                 checkout scm
 
                 script {
-                    def branch = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '')
-                        .replaceFirst(/^origin\//, '')
+                    def scmVars = checkout scm
+
+                    env.GIT_COMMIT = scmVars.GIT_COMMIT ?: sh(
+                        script: 'git rev-parse HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    def branch = (
+                        env.BRANCH_NAME
+                            ?: scmVars.GIT_BRANCH
+                            ?: env.GIT_BRANCH
+                            ?: ''
+                    ).replaceFirst(/^origin\//, '')
 
                     env.CURRENT_BRANCH = branch
                     env.PUBLISH_IMAGE = branch == 'main' ? 'true' : 'false'
 
-                    def sanitizedBuildTag = env.BUILD_TAG
-                        .replaceAll('[^A-Za-z0-9._-]', '-')
-                    env.BUILDER_NAME = "cups-builder-${sanitizedBuildTag}"
+                    def sanitizedBuildTag = (
+                        env.BUILD_TAG ?: "build-${env.BUILD_NUMBER}"
+                    ).replaceAll(/[^A-Za-z0-9._-]/, '-')
+
+                    env.BUILDER_NAME = "discord-music-bot-builder-${sanitizedBuildTag}"
                 }
             }
         }
